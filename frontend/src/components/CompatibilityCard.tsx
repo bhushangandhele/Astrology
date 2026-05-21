@@ -1,6 +1,6 @@
 import React from 'react';
-import type { MatchResult } from '../../../backend/src/engine/compatibility';
-import { PLANETS_MR, SIGNS_MR, NAKSHATRAS_MR, KOOTAS_MR } from '../utils/i18n';
+import type { MatchResult } from '../engine/compatibility';
+import { SIGNS_MR, NAKSHATRAS_MR, KOOTAS_MR } from '../utils/i18n';
 
 interface PartnerInfo {
   name: string;

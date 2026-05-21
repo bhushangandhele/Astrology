@@ -4,9 +4,19 @@ import { ProfileForm, type BirthProfileData } from './components/ProfileForm';
 import { KundaliChart } from './components/KundaliChart';
 import { DashaViewer } from './components/DashaViewer';
 import { CompatibilityCard } from './components/CompatibilityCard';
-import type { BirthChartResult } from '../../backend/src/engine/chart';
-import type { Mahadasha } from '../../backend/src/engine/dasha';
-import type { MatchResult } from '../../backend/src/engine/compatibility';
+import type { BirthChartResult } from './engine/chart';
+import type { Mahadasha } from './engine/dasha';
+import type { MatchResult } from './engine/compatibility';
+import { calculateBirthChart } from './engine/chart';
+import { calculateVimshottariDasha } from './engine/dasha';
+import { calculateAshtakootMatch } from './engine/compatibility';
+import {
+  LAGNA_INTERPRETATIONS,
+  SUN_HOUSE_INTERPRETATIONS,
+  MOON_HOUSE_INTERPRETATIONS,
+  NAKSHATRA_INTERPRETATIONS,
+  DASHA_INTERPRETATIONS
+} from './data/interpretations';
 import { UI_TRANSLATIONS, PLANETS_MR, SIGNS_MR, NAKSHATRAS_MR, PREDICTIONS_MR } from './utils/i18n';
 import { CAREER_BY_10TH_SIGN, LOVE_BY_7TH_SIGN } from './utils/interpretations';
 
@@ -76,7 +86,7 @@ export const App: React.FC = () => {
     };
 
     const nakNameMR = NAKSHATRAS_MR[nakshatraName] || nakshatraName;
-    const nakLordMR = PLANETS_MR[chartData.planets.Moon.nakshatraLord]?.full || chartData.planets.Moon.nakshatraLord;
+    const nakLordMR = PLANETS_MR[chartData.planets.Moon.nakshatraRuler]?.full || chartData.planets.Moon.nakshatraRuler;
     const nak = {
       title: `${nakNameMR} नक्षत्र (स्वामी: ${nakLordMR})`,
       text: `तुमचा जन्म ${nakNameMR} नक्षत्रात झाला आहे. वैदिक ज्योतिषशास्त्रानुसार, हे नक्षत्र तुमच्या स्वभावातील संवेदनशीलता, कल्पकता आणि ज्ञानाची सखोल आवड दर्शवते. या नक्षत्राचे गुणधर्म तुम्हाला आयुष्यात चांगली यशप्राप्ती करून देतील.`
@@ -106,20 +116,48 @@ export const App: React.FC = () => {
     setPartnerDetails(null);
 
     try {
-      const res = await fetch('http://localhost:5113/api/astrology/chart', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(profile)
-      });
+      // 1. Calculate Birth Chart client-side
+      const chart = calculateBirthChart(
+        profile.name,
+        profile.dob,
+        profile.tob,
+        Number(profile.latitude),
+        Number(profile.longitude),
+        profile.timezone,
+        profile.place || ''
+      );
 
-      if (!res.ok) {
-        throw new Error('Failed to compute planetary positions from server.');
-      }
+      // 2. Calculate Vimshottari Dashas client-side
+      const moonLong = chart.planets.Moon.longitude;
+      const dashas = calculateVimshottariDasha(moonLong, profile.dob, profile.tob);
 
-      const data = await res.json();
-      setChartData(data.chart);
-      setDashaData(data.dashas);
-      setPredictionsData(data.predictions);
+      // 3. Compile Interpretations & Predictions client-side
+      const predictions = {
+        ascendant: LAGNA_INTERPRETATIONS[chart.ascendant.signNumber] || {
+          title: `${chart.ascendant.sign} Ascendant`,
+          text: 'You have a highly unique and balanced personality corresponding to your Ascendant sign.'
+        },
+        sunPlacement: SUN_HOUSE_INTERPRETATIONS[chart.planets.Sun.house!] || {
+          title: `Sun in House ${chart.planets.Sun.house!}`,
+          text: 'The Sun represents your core soul essence, health, and status. Its placement sheds light on your path of career and ambition.'
+        },
+        moonPlacement: MOON_HOUSE_INTERPRETATIONS[chart.planets.Moon.house!] || {
+          title: `Moon in House ${chart.planets.Moon.house!}`,
+          text: 'The Moon represents your emotional nature, mental peace, and nurturing qualities.'
+        },
+        nakshatra: NAKSHATRA_INTERPRETATIONS[chart.planets.Moon.nakshatraNumber] || {
+          title: `${chart.planets.Moon.nakshatra} Nakshatra`,
+          text: 'Your birth Nakshatra determines your basic temperament, instinctive reactions, and major life themes.'
+        },
+        birthDasha: DASHA_INTERPRETATIONS[dashas[0].lord] || {
+          title: `${dashas[0].lord} Mahadasha`,
+          text: 'Your current major Vimshottari planetary period shapes the primary focus and flow of events in your life.'
+        }
+      };
+
+      setChartData(chart);
+      setDashaData(dashas);
+      setPredictionsData(predictions);
       setActiveTab('predictions'); // Focus on predictions on successful load
     } catch (err: any) {
       console.error(err);
@@ -145,23 +183,41 @@ export const App: React.FC = () => {
         timezone: chartData.timezone
       };
 
-      const res = await fetch('http://localhost:5113/api/astrology/match', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          profileA: brideProfile, // Bride
-          profileB: partnerProfile // Groom
-        })
-      });
+      // 1. Calculate Moon Longitudes for both profiles client-side
+      const chartA = calculateBirthChart(
+        brideProfile.name,
+        brideProfile.dob,
+        brideProfile.tob,
+        Number(brideProfile.latitude),
+        Number(brideProfile.longitude),
+        brideProfile.timezone,
+        chartData.place || ''
+      );
 
-      if (!res.ok) {
-        throw new Error('Failed to compute compatibility matching.');
-      }
+      const chartB = calculateBirthChart(
+        partnerProfile.name,
+        partnerProfile.dob,
+        partnerProfile.tob,
+        Number(partnerProfile.latitude),
+        Number(partnerProfile.longitude),
+        partnerProfile.timezone,
+        partnerProfile.place || ''
+      );
 
-      const data = await res.json();
+      const moonLongA = chartA.planets.Moon.longitude;
+      const moonLongB = chartB.planets.Moon.longitude;
+
+      // 2. Perform Ashtakoot Gun Milan Matching client-side
+      const match = calculateAshtakootMatch(moonLongA, moonLongB);
+
       setPartnerDetails(partnerProfile);
-      setPartnerRashiData(data.profileB);
-      setMatchResult(data.match);
+      setPartnerRashiData({
+        name: chartB.name,
+        rashi: chartB.planets.Moon.sign,
+        nakshatra: chartB.planets.Moon.nakshatra,
+        pada: chartB.planets.Moon.pada
+      });
+      setMatchResult(match);
     } catch (err: any) {
       console.error(err);
       setError(err.message || 'Failed to calculate matching score.');
@@ -419,7 +475,6 @@ export const App: React.FC = () => {
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                               {planets10.map(pName => {
-                                const interp = (CAREER_BY_10TH_SIGN as any);
                                 const p = chartData.planets[pName];
                                 const pColor = pName === 'Sun' ? '#f59e0b' : pName === 'Moon' ? '#38bdf8' : pName === 'Mars' ? '#f87171' : pName === 'Jupiter' ? '#fbbf24' : pName === 'Venus' ? '#f472b6' : '#a78bfa';
                                 return (

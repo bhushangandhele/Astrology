@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import type { BirthChartResult } from '../../../backend/src/engine/chart';
-import { PLANETS_MR, SIGNS_MR, HOUSE_NAMES_MR, HOUSE_MEANINGS_MR, UI_TRANSLATIONS } from '../utils/i18n';
+import type { BirthChartResult } from '../engine/chart';
+import { PLANETS_MR, SIGNS_MR, HOUSE_NAMES_MR, HOUSE_MEANINGS_MR } from '../utils/i18n';
 import { PLANET_IN_HOUSE } from '../utils/interpretations';
 
 interface KundaliChartProps {

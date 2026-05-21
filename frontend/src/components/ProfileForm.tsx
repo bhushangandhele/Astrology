@@ -49,15 +49,16 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     fetchSavedProfiles();
   }, []);
 
-  const fetchSavedProfiles = async () => {
+  const fetchSavedProfiles = () => {
     try {
-      const res = await fetch('http://localhost:5113/api/profiles');
-      if (res.ok) {
-        const data = await res.json();
-        setSavedProfiles(data.profiles || []);
+      const saved = localStorage.getItem('astro_profiles');
+      if (saved) {
+        setSavedProfiles(JSON.parse(saved));
+      } else {
+        setSavedProfiles([]);
       }
     } catch (err) {
-      console.error('Failed to fetch saved profiles from backend', err);
+      console.error('Failed to fetch saved profiles from localStorage', err);
     }
   };
 
@@ -100,7 +101,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !dob || !tob || !place) return;
 
@@ -117,14 +118,18 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     // If "save profile" is checked and not loading a saved profile directly, save it!
     if (shouldSaveProfile && !selectedProfileId) {
       try {
-        await fetch('http://localhost:5113/api/profiles', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(profileData)
-        });
+        const saved = localStorage.getItem('astro_profiles');
+        const currentProfiles = saved ? JSON.parse(saved) : [];
+        const newProfile = {
+          id: Date.now().toString(),
+          ...profileData
+        };
+        const updatedProfiles = [...currentProfiles, newProfile];
+        localStorage.setItem('astro_profiles', JSON.stringify(updatedProfiles));
         fetchSavedProfiles(); // Refresh list
+        setShouldSaveProfile(false); // Reset checkbox
       } catch (err) {
-        console.error('Failed to save profile', err);
+        console.error('Failed to save profile to localStorage', err);
       }
     }
 

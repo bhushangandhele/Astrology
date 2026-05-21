@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { Mahadasha } from '../../../backend/src/engine/dasha';
+import type { Mahadasha } from '../engine/dasha';
 import { PLANETS_MR } from '../utils/i18n';
 
 interface DashaViewerProps {
