@@ -29,6 +29,8 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   const [dob, setDob] = useState('');
   const [tob, setTob] = useState('');
   const [place, setPlace] = useState('');
+  const [dobFocused, setDobFocused] = useState(false);
+  const [tobFocused, setTobFocused] = useState(false);
   
   // Geocoding coords & timezone
   const [latitude, setLatitude] = useState<number>(28.6139);
@@ -183,7 +185,10 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
           <label htmlFor="dob-picker">{t.dob}</label>
           <input
             id="dob-picker"
-            type="date"
+            type={dobFocused || dob ? 'date' : 'text'}
+            onFocus={() => setDobFocused(true)}
+            onBlur={() => setDobFocused(false)}
+            placeholder={language === 'MR' ? 'जन्मतारीख निवडा 📅' : 'Select Birth Date 📅'}
             className="input-cosmic"
             required
             value={dob}
@@ -195,7 +200,10 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
           <label htmlFor="tob-picker">{t.tob}</label>
           <input
             id="tob-picker"
-            type="time"
+            type={tobFocused || tob ? 'time' : 'text'}
+            onFocus={() => setTobFocused(true)}
+            onBlur={() => setTobFocused(false)}
+            placeholder={language === 'MR' ? 'जन्म वेळ निवडा ⏰' : 'Select Birth Time ⏰'}
             className="input-cosmic"
             required
             value={tob}

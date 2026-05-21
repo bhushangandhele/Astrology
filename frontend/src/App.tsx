@@ -323,7 +323,7 @@ export const App: React.FC = () => {
  
        {/* Primary Application Workspace */}
        <main className="main-content">
-         <div className="grid-2" style={{ gridTemplateColumns: chartData ? '1fr 2fr' : '1fr', gap: '2rem' }}>
+         <div className={chartData ? "workspace-layout" : "workspace-layout welcome"}>
            
            {/* Left Column: DOB Entry Form */}
            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -375,6 +375,26 @@ export const App: React.FC = () => {
                 {/* 1. Life Predictions Tab */}
                 {activeTab === 'predictions' && localizedPredictions && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    {/* Onboarding Guide Callout */}
+                    <div 
+                      className="glass-panel" 
+                      style={{ 
+                        borderLeft: '4px solid var(--color-gold)', 
+                        background: 'rgba(245, 158, 11, 0.03)', 
+                        padding: '1rem 1.25rem', 
+                        borderRadius: '0 12px 12px 0' 
+                      }}
+                    >
+                      <h4 style={{ color: 'var(--color-gold)', fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        🔭 {language === 'MR' ? 'कसे वाचायचे:' : 'How to Read Your Predictions:'}
+                      </h4>
+                      <p style={{ color: '#cbd5e1', fontSize: '0.85rem', lineHeight: '1.5', margin: 0 }}>
+                        {language === 'MR'
+                          ? 'या विभागात तुमचे लग्न (Ascendant), सूर्य-चंद्र स्थिती आणि जन्म नक्षत्राचे फलादेश दिले आहेत. हे तुमच्या संपूर्ण व्यक्तिमत्त्व आणि मूळ स्वभावधर्माचे विश्लेषण करते.'
+                          : 'This section details your core characteristics based on your Ascendant (personality), Sun placement (career/soul), Moon placement (mind/emotions), Nakshatra (temperament), and active Dasha period.'}
+                      </p>
+                    </div>
+
                     <div className="glass-panel gold-themed">
                       <h3 className="title-cosmic" style={{ fontSize: '1.5rem', borderBottom: '1px solid rgba(245, 158, 11, 0.2)', paddingBottom: '0.5rem' }}>
                         {localizedPredictions.ascendant.title}
@@ -453,6 +473,23 @@ export const App: React.FC = () => {
                             </div>
                           </div>
                         </div>
+                        {/* Onboarding Guide Callout */}
+                        <div 
+                          style={{ 
+                            borderLeft: '4px solid #10b981', 
+                            background: 'rgba(16, 185, 129, 0.05)', 
+                            padding: '0.85rem 1.15rem', 
+                            borderRadius: '0 8px 8px 0',
+                            marginBottom: '1.5rem',
+                            fontSize: '0.85rem',
+                            lineHeight: '1.5',
+                            color: '#cbd5e1'
+                          }}
+                        >
+                          <strong>💡 {language === 'MR' ? 'करिअर मार्गदर्शन:' : 'Career Guide:'}</strong> {language === 'MR' 
+                            ? 'कुंडलीतील १० वे स्थान (कर्म भाव) आणि त्यातील ग्रह तुमच्या व्यावसायिक यश, अधिकार आणि सर्वोत्तम करिअर क्षेत्रांबद्दल अचूक माहिती देतात.'
+                            : 'The 10th house determines your professional status, workspace success, leadership, and public influence. Check the recommended fields and planet influences below.'}
+                        </div>
                         {careerInfo && (
                           <>
                             <p style={{ fontSize: '1.05rem', lineHeight: '1.8', color: '#cbd5e1', marginBottom: '1.5rem' }}>{careerInfo.text}</p>
@@ -480,7 +517,7 @@ export const App: React.FC = () => {
                                 return (
                                   <div key={pName} style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${pColor}30`, borderRadius: '10px', padding: '0.75rem 1rem' }}>
                                     <div style={{ fontWeight: 700, color: pColor, marginBottom: '0.25rem' }}>
-                                      {language === 'MR' ? (import.meta as any).__MR_PLANETS?.[pName] ?? pName : pName} — {p?.degreeInSign?.toFixed(1)}° {language === 'MR' ? 'मध्ये' : 'in'} {p?.nakshatra}
+                                      {language === 'MR' ? PLANETS_MR[pName]?.full ?? pName : pName} — {p?.degreeInSign?.toFixed(1)}° {language === 'MR' ? `${SIGNS_MR[p?.sign]?.name ?? p?.sign} मध्ये` : `in ${p?.sign}`} ({language === 'MR' ? NAKSHATRAS_MR[p?.nakshatra] ?? p?.nakshatra : p?.nakshatra})
                                     </div>
                                     <div style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
                                       {language === 'MR' ? 'हा ग्रह करिअरमध्ये शक्तिशाली प्रभाव टाकतो.' : 'This planet powerfully influences your 10th house career direction.'}
@@ -515,6 +552,23 @@ export const App: React.FC = () => {
                               {language === 'MR' ? '७ वे भाव (जाया स्थान):' : '7th House (Yuvati Bhava):'} <strong style={{ color: '#f472b6' }}>{seventh?.signName}</strong>
                             </div>
                           </div>
+                        </div>
+                        {/* Onboarding Guide Callout */}
+                        <div 
+                          style={{ 
+                            borderLeft: '4px solid #f472b6', 
+                            background: 'rgba(244, 114, 182, 0.05)', 
+                            padding: '0.85rem 1.15rem', 
+                            borderRadius: '0 8px 8px 0',
+                            marginBottom: '1.5rem',
+                            fontSize: '0.85rem',
+                            lineHeight: '1.5',
+                            color: '#cbd5e1'
+                          }}
+                        >
+                          <strong>💡 {language === 'MR' ? 'विवाह मार्गदर्शन:' : 'Relationship Guide:'}</strong> {language === 'MR' 
+                            ? 'कुंडलीतील ७ वे स्थान (जाया भाव) तुमच्या वैवाहिक जोडीदाराचा स्वभाव, विवाहाचे सुख आणि विवाहाचा काळ दर्शवते. शुक्राची स्थिती प्रेमाचा सखोल फलादेश देते.'
+                            : 'The 7th house governs marriage, partnerships, and spouse characteristics. Venus indicates how you express and receive love. Check your spouse qualities and timings below.'}
                         </div>
                         {loveInfo && (
                           <>
@@ -552,7 +606,9 @@ export const App: React.FC = () => {
                                 const pColor = pName === 'Sun' ? '#f59e0b' : pName === 'Moon' ? '#38bdf8' : pName === 'Mars' ? '#f87171' : pName === 'Jupiter' ? '#fbbf24' : pName === 'Venus' ? '#f472b6' : '#a78bfa';
                                 return (
                                   <div key={pName} style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${pColor}30`, borderRadius: '10px', padding: '0.75rem 1rem' }}>
-                                    <div style={{ fontWeight: 700, color: pColor, marginBottom: '0.25rem' }}>{pName} — {p?.degreeInSign?.toFixed(1)}° {language === 'MR' ? 'मध्ये' : 'in'} {p?.nakshatra}</div>
+                                    <div style={{ fontWeight: 700, color: pColor, marginBottom: '0.25rem' }}>
+                                      {language === 'MR' ? PLANETS_MR[pName]?.full ?? pName : pName} — {p?.degreeInSign?.toFixed(1)}° {language === 'MR' ? `${SIGNS_MR[p?.sign]?.name ?? p?.sign} मध्ये` : `in ${p?.sign}`} ({language === 'MR' ? NAKSHATRAS_MR[p?.nakshatra] ?? p?.nakshatra : p?.nakshatra})
+                                    </div>
                                     <div style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
                                       {language === 'MR' ? 'हा ग्रह तुमच्या विवाह आणि प्रेम जीवनावर प्रभाव टाकतो.' : 'This planet directly influences your marriage and love life.'}
                                     </div>
@@ -620,39 +676,137 @@ export const App: React.FC = () => {
                 )}
               </div>
             ) : (
-              /* Landing Card / Empty State */
-              <div
-                className="glass-panel gold-themed animated-float"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  textAlign: 'center',
-                  padding: '3rem 2rem',
-                  maxWidth: '560px',
-                  margin: '4rem auto 0'
-                }}
-              >
-                <div style={{ fontSize: '3rem', marginBottom: '1rem', filter: 'drop-shadow(0 0 15px var(--color-gold-glow))' }}>
-                  🪐
+              /* Landing Card / Welcome Onboarding Instructions & Creator badge */
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                {/* Presentation Badge */}
+                <div className="glass-panel gold-themed animated-float" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                  <div style={{ fontSize: '3.5rem', marginBottom: '1rem', filter: 'drop-shadow(0 0 15px var(--color-gold-glow))' }}>🪐</div>
+                  <h2 className="title-cosmic" style={{ fontSize: '1.8rem', marginBottom: '0.5rem' }}>
+                    {UI_TRANSLATIONS[language].title}
+                  </h2>
+                  <div 
+                    style={{ 
+                      display: 'inline-block',
+                      background: 'rgba(245, 158, 11, 0.1)', 
+                      border: '1px solid rgba(245, 158, 11, 0.3)', 
+                      color: '#f59e0b',
+                      padding: '0.25rem 1rem',
+                      borderRadius: '50px',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      marginBottom: '1rem'
+                    }}
+                  >
+                    {language === 'MR' ? '✨ निर्मिती व रचना: भूषण गंधेले' : '✨ Designed & Developed by Bhushan Gandhele'}
+                  </div>
+                  <p style={{ color: '#cbd5e1', fontSize: '1.05rem', lineHeight: '1.6', marginBottom: '0' }}>
+                    {UI_TRANSLATIONS[language].subtitle}
+                  </p>
                 </div>
-                <h2 className="title-cosmic" style={{ fontSize: '1.8rem', marginBottom: '1rem' }}>
-                  {UI_TRANSLATIONS[language].title}
-                </h2>
-                <p style={{ color: '#cbd5e1', fontSize: '1.05rem', lineHeight: '1.6', marginBottom: '1.5rem' }}>
-                  {UI_TRANSLATIONS[language].subtitle}
-                </p>
-                <div
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(245, 158, 11, 0.2)',
-                    padding: '0.75rem 1.25rem',
-                    borderRadius: '8px',
-                    fontSize: '0.85rem',
-                    color: '#fef08a'
-                  }}
-                >
-                  {UI_TRANSLATIONS[language].loadingSaved}
+
+                {/* Onboarding Guide / Feature Guide */}
+                <div className="glass-panel" style={{ padding: '2rem' }}>
+                  <h3 className="title-cosmic" style={{ fontSize: '1.3rem', color: '#a78bfa', borderBottom: '1px solid rgba(167, 139, 250, 0.2)', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>
+                    {language === 'MR' ? '🌌 मुख्य वैशिष्ट्ये आणि मार्गदर्शिका' : '🌌 Core Features & User Guide'}
+                  </h3>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    {/* Feature 1 */}
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                      <div style={{ fontSize: '1.75rem', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.2)', borderRadius: '8px', padding: '0.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>🔭</div>
+                      <div>
+                        <h4 style={{ color: '#f59e0b', fontSize: '1rem', fontWeight: 600, marginBottom: '0.25rem' }}>
+                          {language === 'MR' ? '१. जीवन फलादेश (Predictions)' : '1. Life Predictions'}
+                        </h4>
+                        <p style={{ color: '#94a3b8', fontSize: '0.88rem', lineHeight: '1.5', margin: 0 }}>
+                          {language === 'MR' 
+                            ? 'तुमचे लग्न (Ascendant), सूर्य-चंद्र स्थिती आणि जन्मनक्षत्राच्या आधारे सखोल स्वभाव व जीवन मार्ग जाणण्यासाठी.' 
+                            : 'Analyze your Ascendant (Lagna), Sun, Moon, and birth Nakshatra to reveal personality traits and life destiny.'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Feature 2 */}
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                      <div style={{ fontSize: '1.75rem', background: 'rgba(167, 139, 250, 0.1)', border: '1px solid rgba(167, 139, 250, 0.2)', borderRadius: '8px', padding: '0.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>🗺️</div>
+                      <div>
+                        <h4 style={{ color: '#a78bfa', fontSize: '1rem', fontWeight: 600, marginBottom: '0.25rem' }}>
+                          {language === 'MR' ? '२. परस्परसंवादी जन्म कुंडली (Interactive Kundali)' : '2. Interactive Birth Chart'}
+                        </h4>
+                        <p style={{ color: '#94a3b8', fontSize: '0.88rem', lineHeight: '1.5', margin: 0 }}>
+                          {language === 'MR'
+                            ? 'अचूक उत्तर भारतीय D1 कुंडली. कोणत्याही भावावर (घरावर) टॅप करून तेथील ग्रह, स्वामी आणि शास्त्रीय अर्थ पहा.'
+                            : 'Interactive North Indian D1 Kundali. Tap on any house to instantly check planets, rulers, and expert interpretations.'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Feature 3 */}
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                      <div style={{ fontSize: '1.75rem', background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.2)', borderRadius: '8px', padding: '0.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>📅</div>
+                      <div>
+                        <h4 style={{ color: '#38bdf8', fontSize: '1rem', fontWeight: 600, marginBottom: '0.25rem' }}>
+                          {language === 'MR' ? '३. विंशोत्तरी महादशा (Vimshottari Dasha)' : '3. Vimshottari Dasha Tree'}
+                        </h4>
+                        <p style={{ color: '#94a3b8', fontSize: '0.88rem', lineHeight: '1.5', margin: 0 }}>
+                          {language === 'MR'
+                            ? 'तुमच्या संपूर्ण १२० वर्षांच्या महादशा आणि अंतर्दशा कालावधीचे अचूक झाड (Dasha Tree) तपासा.'
+                            : 'View a detailed 120-year Mahadasha and Antardasha tree calculated client-side to the exact second.'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Feature 4 */}
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                      <div style={{ fontSize: '1.75rem', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: '8px', padding: '0.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>💼</div>
+                      <div>
+                        <h4 style={{ color: '#10b981', fontSize: '1rem', fontWeight: 600, marginBottom: '0.25rem' }}>
+                          {language === 'MR' ? '४. करिअर आणि व्यवसाय मार्गदर्शन (Career)' : '4. Career Path Analysis'}
+                        </h4>
+                        <p style={{ color: '#94a3b8', fontSize: '0.88rem', lineHeight: '1.5', margin: 0 }}>
+                          {language === 'MR'
+                            ? '१० व्या कर्म स्थानाचा सखोल अभ्यास करून तुमच्यासाठी शिफारस केलेले सर्वोत्तम व्यावसायिक क्षेत्र शोधा.'
+                            : 'Analyzes the 10th house (Karma Bhava) and planets to suggest optimal professional paths and business success.'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Feature 5 */}
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                      <div style={{ fontSize: '1.75rem', background: 'rgba(244, 114, 182, 0.1)', border: '1px solid rgba(244, 114, 182, 0.2)', borderRadius: '8px', padding: '0.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>❤️</div>
+                      <div>
+                        <h4 style={{ color: '#f472b6', fontSize: '1rem', fontWeight: 600, marginBottom: '0.25rem' }}>
+                          {language === 'MR' ? '५. प्रेम आणि विवाह भविष्य (Love & Marriage)' : '5. Love & Marriage Placements'}
+                        </h4>
+                        <p style={{ color: '#94a3b8', fontSize: '0.88rem', lineHeight: '1.5', margin: 0 }}>
+                          {language === 'MR'
+                            ? '७ व्या स्थानाचा आणि शुक्र ग्रहाचा अभ्यास करून वैवाहिक सुख, जोडीदाराचा स्वभाव आणि विवाह काळ पहा.'
+                            : 'Examines the 7th house and Venus (planet of love) to reveal spouse traits, timing, and marital harmony.'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Feature 6 */}
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                      <div style={{ fontSize: '1.75rem', background: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.2)', borderRadius: '8px', padding: '0.5rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>🔮</div>
+                      <div>
+                        <h4 style={{ color: '#8b5cf6', fontSize: '1rem', fontWeight: 600, marginBottom: '0.25rem' }}>
+                          {language === 'MR' ? '६. अष्टकूट कुंडली गुण मिलन (Gun Milan)' : '6. Gun Milan Compatibility'}
+                        </h4>
+                        <p style={{ color: '#94a3b8', fontSize: '0.88rem', lineHeight: '1.5', margin: 0 }}>
+                          {language === 'MR'
+                            ? 'वधू-वरांच्या नक्षत्रांचे अष्टकूट जुळवून ३६ गुणांपैकी अचूक स्कोअर आणि नाडी दोषादी मिलन तपासा.'
+                            : 'Enter groom details to check traditional 8-fold compatibility matching score out of 36 points.'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Privacy Badge */}
+                <div style={{ textAlign: 'center', color: '#64748b', fontSize: '0.8rem', display: 'flex', justifyContent: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+                  <span>🛡️ {language === 'MR' ? '१००% खाजगी आणि गोपनीय (स्थानिक गणिते)' : '100% Private (Calculations run on device)'}</span>
+                  <span>⚡ {language === 'MR' ? 'झटपट खगोलीय आकडेमोड' : 'Computed instantly'}</span>
                 </div>
               </div>
             )}
@@ -662,6 +816,9 @@ export const App: React.FC = () => {
 
       <footer>
         <p>{UI_TRANSLATIONS[language].copyright}</p>
+        <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#a78bfa' }}>
+          {language === 'MR' ? 'निर्मिती व रचना: भूषण गंधेले' : 'Designed & Developed by Bhushan Gandhele'}
+        </p>
       </footer>
     </div>
   );

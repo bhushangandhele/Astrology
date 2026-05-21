@@ -1,23 +1,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Cosmic Theme Color Palette */
-  --bg-deep-space: #030308;
-  --bg-nebula-dark: #080712;
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
+  /* Cosmic Theme Color Palette - Sleek Twilight Navy & Amber Gold */
+  --bg-deep-space: #060515;
+  --bg-nebula-dark: #120e3a;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
   
   --color-gold: #f59e0b;
-  --color-gold-glow: rgba(245, 158, 11, 0.4);
-  --color-purple: #8b5cf6;
-  --color-purple-deep: #4c1d95;
-  --color-purple-glow: rgba(139, 92, 246, 0.3);
+  --color-gold-glow: rgba(245, 158, 11, 0.45);
+  --color-purple: #a78bfa;
+  --color-purple-deep: #2e1065;
+  --color-purple-glow: rgba(167, 139, 250, 0.25);
   
-  --glass-bg: rgba(10, 8, 22, 0.65);
-  --glass-border: rgba(139, 92, 246, 0.2);
-  --glass-border-gold: rgba(245, 158, 11, 0.35);
-  --glass-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
-  --glass-blur: blur(16px);
+  --glass-bg: rgba(18, 15, 48, 0.76);
+  --glass-border: rgba(167, 139, 250, 0.25);
+  --glass-border-gold: rgba(245, 158, 11, 0.45);
+  --glass-glow: 0 12px 40px 0 rgba(7, 5, 20, 0.85);
+  --glass-blur: blur(20px);
   
   /* Font Family Definitions */
   --font-cosmic: 'Cinzel', serif;
@@ -47,7 +47,7 @@ body {
   margin: 0;
   min-height: 100vh;
   overflow-x: hidden;
-  background: radial-gradient(circle at 50% 50%, var(--bg-nebula-dark) 0%, var(--bg-deep-space) 100%);
+  background: radial-gradient(circle at 50% 50%, #15113f 0%, #060515 100%);
 }
 
 /* Layout Utilities */
@@ -341,3 +341,82 @@ footer a:hover {
   color: #fff;
   text-decoration: underline;
 }
+
+/* Responsive Workspace Layout Grid */
+.workspace-layout {
+  display: grid;
+  grid-template-columns: 1fr 2.1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.workspace-layout.single {
+  grid-template-columns: 1fr;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.workspace-layout.welcome {
+  grid-template-columns: 1fr 1.5fr;
+}
+
+/* Mobile Screen Compatibility & Optimizations */
+@media (max-width: 1024px) {
+  .workspace-layout,
+  .workspace-layout.welcome {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 768px) {
+  header {
+    padding: 0.75rem 1rem !important;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: center;
+  }
+  
+  .logo-section {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 0.4rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    width: 100vw;
+    margin: 0 -1rem;
+    padding: 0.5rem 1rem;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  .nav-links::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .nav-button {
+    padding: 0.4rem 0.75rem !important;
+    font-size: 0.88rem !important;
+    flex-shrink: 0;
+  }
+  
+  .nav-button::after {
+    bottom: -2px !important;
+  }
+
+  main.main-content {
+    padding: 1rem !important;
+  }
+  
+  .glass-panel {
+    padding: 1.25rem !important;
+  }
+}
+
