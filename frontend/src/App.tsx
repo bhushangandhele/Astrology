@@ -255,6 +255,19 @@ export const App: React.FC = () => {
     if (!element) return;
     
     setIsDownloading(true);
+    
+    const origDisplay = element.style.display;
+    const origPosition = element.style.position;
+    const origLeft = element.style.left;
+    const origTop = element.style.top;
+    const origZIndex = element.style.zIndex;
+
+    element.style.display = 'block';
+    element.style.position = 'absolute';
+    element.style.left = '0px';
+    element.style.top = '0px';
+    element.style.zIndex = '-9999';
+
     try {
       // Small timeout to ensure layout is ready
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -274,9 +287,56 @@ export const App: React.FC = () => {
       console.error('Failed to generate PDF:', err);
       alert(language === 'MR' ? 'पीडीएफ तयार करण्यात त्रुटी आली.' : 'Error generating PDF.');
     } finally {
+      element.style.display = origDisplay;
+      element.style.position = origPosition;
+      element.style.left = origLeft;
+      element.style.top = origTop;
+      element.style.zIndex = origZIndex;
       setIsDownloading(false);
     }
   };
+  const renderNavLinks = () => (
+    <div className="nav-links">
+      <button
+        className={`nav-button ${activeTab === 'predictions' ? 'active' : ''}`}
+        onClick={() => handleTabChange('predictions')}
+      >
+        <span>🔮</span> <div>{UI_TRANSLATIONS[language].lifePredictionsTab}</div>
+      </button>
+      <button
+        className={`nav-button ${activeTab === 'chart' ? 'active' : ''}`}
+        onClick={() => handleTabChange('chart')}
+      >
+        <span>🌌</span> <div>{UI_TRANSLATIONS[language].birthChartTab}</div>
+      </button>
+      <button
+        className={`nav-button ${activeTab === 'dasha' ? 'active' : ''}`}
+        onClick={() => handleTabChange('dasha')}
+      >
+        <span>⏳</span> <div>{UI_TRANSLATIONS[language].vimshottariDashaTab}</div>
+      </button>
+      <button
+        className={`nav-button ${activeTab === 'career' ? 'active' : ''}`}
+        onClick={() => handleTabChange('career')}
+        style={{ color: activeTab === 'career' ? undefined : '#10b981' }}
+      >
+        <span>💼</span> <div>{language === 'MR' ? 'करिअर' : 'Career'}</div>
+      </button>
+      <button
+        className={`nav-button ${activeTab === 'love' ? 'active' : ''}`}
+        onClick={() => handleTabChange('love')}
+        style={{ color: activeTab === 'love' ? undefined : '#f472b6' }}
+      >
+        <span>❤️</span> <div>{language === 'MR' ? 'प्रेम' : 'Love'}</div>
+      </button>
+      <button
+        className={`nav-button ${activeTab === 'matching' ? 'active' : ''}`}
+        onClick={() => handleTabChange('matching')}
+      >
+        <span>💞</span> <div>{UI_TRANSLATIONS[language].gunMilanMatchingTab}</div>
+      </button>
+    </div>
+  );
 
   return (
     <div className="app-container">
@@ -355,49 +415,19 @@ export const App: React.FC = () => {
             </div>
           </div>
           {chartData && (
-            <div className="nav-links">
-              <button
-                className={`nav-button ${activeTab === 'predictions' ? 'active' : ''}`}
-                onClick={() => handleTabChange('predictions')}
-              >
-                <span>🔮</span> <div>{UI_TRANSLATIONS[language].lifePredictionsTab}</div>
-              </button>
-              <button
-                className={`nav-button ${activeTab === 'chart' ? 'active' : ''}`}
-                onClick={() => handleTabChange('chart')}
-              >
-                <span>🌌</span> <div>{UI_TRANSLATIONS[language].birthChartTab}</div>
-              </button>
-              <button
-                className={`nav-button ${activeTab === 'dasha' ? 'active' : ''}`}
-                onClick={() => handleTabChange('dasha')}
-              >
-                <span>⏳</span> <div>{UI_TRANSLATIONS[language].vimshottariDashaTab}</div>
-              </button>
-              <button
-                className={`nav-button ${activeTab === 'career' ? 'active' : ''}`}
-                onClick={() => handleTabChange('career')}
-                style={{ color: activeTab === 'career' ? undefined : '#10b981' }}
-              >
-                <span>💼</span> <div>{language === 'MR' ? 'करिअर' : 'Career'}</div>
-              </button>
-              <button
-                className={`nav-button ${activeTab === 'love' ? 'active' : ''}`}
-                onClick={() => handleTabChange('love')}
-                style={{ color: activeTab === 'love' ? undefined : '#f472b6' }}
-              >
-                <span>❤️</span> <div>{language === 'MR' ? 'प्रेम' : 'Love'}</div>
-              </button>
-              <button
-                className={`nav-button ${activeTab === 'matching' ? 'active' : ''}`}
-                onClick={() => handleTabChange('matching')}
-              >
-                <span>💞</span> <div>{UI_TRANSLATIONS[language].gunMilanMatchingTab}</div>
-              </button>
+            <div className="desktop-nav-wrapper">
+              {renderNavLinks()}
             </div>
           )}
         </div>
       </header>
+
+      {/* Mobile Nav Links (Rendered outside header to escape backdrop-filter containing block bug) */}
+      {chartData && (
+        <div className="mobile-nav-wrapper">
+          {renderNavLinks()}
+        </div>
+      )}
  
        {/* Primary Application Workspace */}
        <main className="main-content">

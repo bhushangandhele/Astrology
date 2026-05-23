@@ -485,13 +485,23 @@ footer a:hover {
 }
 
 .print-only {
-  position: absolute;
-  top: -99999px;
-  left: 0;
+  display: none;
   width: 900px; /* Fixed width to mimic A4 proportions for PDF */
   background: #ffffff;
   color: #000000;
   padding: 40px;
   box-sizing: border-box;
-  z-index: -100;
+}
+
+.mobile-nav-wrapper {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .desktop-nav-wrapper {
+    display: none;
+  }
+  .mobile-nav-wrapper {
+    display: block;
+  }
 }
