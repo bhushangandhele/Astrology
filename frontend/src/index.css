@@ -382,6 +382,23 @@ footer a:hover {
   .logo-section {
     width: 100%;
     justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .logo-text {
+    font-size: 1.15rem !important;
+    white-space: normal;
+    line-height: 1.2;
+  }
+
+  .language-switcher {
+    flex-shrink: 0;
+    margin-left: auto !important;
+  }
+
+  .grid-2 {
+    grid-template-columns: 1fr !important;
   }
 
   .nav-links {

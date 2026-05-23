@@ -19,6 +19,7 @@ import {
 } from './data/interpretations';
 import { UI_TRANSLATIONS, PLANETS_MR, SIGNS_MR, NAKSHATRAS_MR, PREDICTIONS_MR } from './utils/i18n';
 import { CAREER_BY_10TH_SIGN, LOVE_BY_7TH_SIGN } from './utils/interpretations';
+import { analyzeMarriageType, analyzePartnerMeet } from './engine/marriageAnalysis';
 
 interface Prediction {
   title: string;
@@ -239,7 +240,7 @@ export const App: React.FC = () => {
             <h1 className="logo-text">{UI_TRANSLATIONS[language].astrologyTitle}</h1>
             
             {/* Language Switcher */}
-            <div style={{ marginLeft: '1.5rem', display: 'flex', gap: '0.25rem', background: 'rgba(255,255,255,0.05)', padding: '3px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div className="language-switcher" style={{ marginLeft: 'auto', display: 'flex', gap: '0.25rem', background: 'rgba(255,255,255,0.05)', padding: '3px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
               <button 
                 type="button"
                 onClick={() => setLanguage('EN')}
@@ -395,6 +396,32 @@ export const App: React.FC = () => {
                       </p>
                     </div>
 
+                    {/* Prominent Ascendant and Moon Badges */}
+                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                      <div style={{ flex: '1 1 250px', background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.1))', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '12px', padding: '1rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div style={{ fontSize: '2.5rem' }}>🌅</div>
+                        <div>
+                          <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#f59e0b', letterSpacing: '0.05em', marginBottom: '0.2rem' }}>
+                            {language === 'MR' ? 'लग्न राशी (Ascendant)' : 'ASCENDANT (Lagna)'}
+                          </div>
+                          <div style={{ fontSize: '1.4rem', fontWeight: 600, color: '#fff' }}>
+                            {language === 'MR' ? SIGNS_MR[chartData.ascendant.sign]?.name || chartData.ascendant.sign : chartData.ascendant.sign}
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ flex: '1 1 250px', background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(14, 165, 233, 0.1))', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: '12px', padding: '1rem 1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div style={{ fontSize: '2.5rem' }}>🌙</div>
+                        <div>
+                          <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#38bdf8', letterSpacing: '0.05em', marginBottom: '0.2rem' }}>
+                            {language === 'MR' ? 'जन्म राशी (Moon Sign)' : 'MOON SIGN (Rashi)'}
+                          </div>
+                          <div style={{ fontSize: '1.4rem', fontWeight: 600, color: '#fff' }}>
+                            {language === 'MR' ? SIGNS_MR[chartData.planets['Moon'].sign]?.name || chartData.planets['Moon'].sign : chartData.planets['Moon'].sign}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="glass-panel gold-themed">
                       <h3 className="title-cosmic" style={{ fontSize: '1.5rem', borderBottom: '1px solid rgba(245, 158, 11, 0.2)', paddingBottom: '0.5rem' }}>
                         {localizedPredictions.ascendant.title}
@@ -451,7 +478,27 @@ export const App: React.FC = () => {
 
                 {/* 3. Vimshottari Dasha Tree Tab */}
                 {activeTab === 'dasha' && dashaData && (
-                  <DashaViewer dashas={dashaData} language={language} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <div 
+                      className="glass-panel" 
+                      style={{ 
+                        borderLeft: '4px solid #a855f7', 
+                        background: 'rgba(168, 85, 247, 0.05)', 
+                        padding: '1rem 1.25rem', 
+                        borderRadius: '0 12px 12px 0' 
+                      }}
+                    >
+                      <h4 style={{ color: '#c084fc', fontSize: '1.05rem', fontWeight: 600, marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        ⏳ {language === 'MR' ? 'विंशोत्तरी दशा म्हणजे काय?' : 'What is Vimshottari Dasha?'}
+                      </h4>
+                      <p style={{ color: '#cbd5e1', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 }}>
+                        {language === 'MR'
+                          ? 'विंशोत्तरी दशा हे १२० वर्षांचे ग्रहांचे चक्र आहे. "महादशा" (Major Period) तुमच्या आयुष्यातील प्रमुख घटना आणि प्रवृत्ती ठरवते, तर "अंतर्दशा" (Sub Period) त्या काळात घडणाऱ्या विशिष्ट घटनांना चालना देते. खालील तक्त्यामध्ये तुमच्या आयुष्यात कोणत्या ग्रहाचा काळ कधी सुरू होतो आणि संपतो हे दिले आहे.'
+                          : 'Vimshottari Dasha is a 120-year planetary timeline. The Mahadasha (Major Period) indicates the overarching theme of your life, while the Antardasha (Sub-period) triggers specific events. The dates below show exactly when each planet\'s influence begins and ends.'}
+                      </p>
+                    </div>
+                    <DashaViewer dashas={dashaData} language={language} />
+                  </div>
                 )}
 
                 {/* 5. Career Tab */}
@@ -583,6 +630,42 @@ export const App: React.FC = () => {
                                 <p style={{ fontSize: '0.9rem', color: '#cbd5e1', margin: 0, lineHeight: '1.6' }}>{loveInfo.timing}</p>
                               </div>
                             </div>
+                            
+                            {/* NEW: Love vs Arranged Marriage & Partner Meet Details */}
+                            {(() => {
+                              const marriagePrediction = analyzeMarriageType(chartData);
+                              const partnerMeetPrediction = analyzePartnerMeet(chartData);
+                              return (
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                                  <div style={{ background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(219, 39, 119, 0.05))', border: '1px solid rgba(236, 72, 153, 0.3)', borderRadius: '10px', padding: '1.25rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                      <span style={{ fontSize: '1.2rem' }}>{marriagePrediction.type === 'Love' ? '💖' : marriagePrediction.type === 'Arranged' ? '🤝' : '💕'}</span>
+                                      <div style={{ fontSize: '0.9rem', color: '#f472b6', fontWeight: 700, letterSpacing: '0.05em' }}>
+                                        {language === 'MR' ? 'विवाहाचा प्रकार (Love / Arranged)' : 'MARRIAGE TYPE PREDICTION'}
+                                      </div>
+                                    </div>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '0.5rem' }}>
+                                      {marriagePrediction.type === 'Love' ? (language === 'MR' ? 'प्रेम विवाह (Love Marriage)' : 'Love Marriage') : marriagePrediction.type === 'Arranged' ? (language === 'MR' ? 'ठरवून केलेले लग्न (Arranged Marriage)' : 'Arranged Marriage') : (language === 'MR' ? 'प्रेम-कम-अरेंज मॅरेज' : 'Love-cum-Arranged Marriage')}
+                                    </div>
+                                    <p style={{ fontSize: '0.95rem', color: '#cbd5e1', margin: 0, lineHeight: '1.6' }}>
+                                      {language === 'MR' ? marriagePrediction.MR : marriagePrediction.EN}
+                                    </p>
+                                  </div>
+
+                                  <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '10px', padding: '1.25rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                      <span style={{ fontSize: '1.2rem' }}>📍</span>
+                                      <div style={{ fontSize: '0.9rem', color: '#f472b6', fontWeight: 700, letterSpacing: '0.05em' }}>
+                                        {language === 'MR' ? 'जोडीदाराशी भेट कशी होईल?' : 'HOW WILL YOU MEET YOUR PARTNER?'}
+                                      </div>
+                                    </div>
+                                    <p style={{ fontSize: '0.95rem', color: '#cbd5e1', margin: 0, lineHeight: '1.6' }}>
+                                      {language === 'MR' ? partnerMeetPrediction.MR : partnerMeetPrediction.EN}
+                                    </p>
+                                  </div>
+                                </div>
+                              );
+                            })()}
                           </>
                         )}
                         {venus && (
