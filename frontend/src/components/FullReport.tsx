@@ -4,7 +4,8 @@ import type { BirthChartResult } from '../engine/chart';
 import type { Mahadasha } from '../engine/dasha';
 import { CAREER_BY_10TH_SIGN, LOVE_BY_7TH_SIGN } from '../utils/interpretations';
 import { analyzeJobType, analyzeJobSwitches } from '../engine/careerAnalysis';
-import { analyzeMarriageType, analyzePartnerMeet, analyzeMangalDosh } from '../engine/marriageAnalysis';
+import { analyzeMarriageType, analyzePartnerMeet, analyzeMangalDosh, getPartnerNameLetters } from '../engine/marriageAnalysis';
+import { getLuckyFactors } from '../engine/luckyFactors';
 import { SIGNS_MR, NAKSHATRAS_MR } from '../utils/i18n';
 
 interface FullReportProps {
@@ -27,6 +28,8 @@ export const FullReport: React.FC<FullReportProps> = ({ chartData, dashaData, lo
   const marriagePrediction = analyzeMarriageType(chartData);
   const partnerMeetPrediction = analyzePartnerMeet(chartData);
   const mangalDoshPrediction = analyzeMangalDosh(chartData);
+  const partnerNameLetters = getPartnerNameLetters(chartData);
+  const lucky = getLuckyFactors(chartData);
 
   return (
     <div id="full-print-report" className="print-only" style={{ color: '#000', background: '#fff', padding: '2rem', fontFamily: 'sans-serif' }}>
@@ -147,9 +150,37 @@ export const FullReport: React.FC<FullReportProps> = ({ chartData, dashaData, lo
                 <strong>{language === 'MR' ? mangalDoshPrediction.statusMR : mangalDoshPrediction.statusEN}</strong><br/>
                 {language === 'MR' ? mangalDoshPrediction.adviceMR : mangalDoshPrediction.adviceEN}
               </div>
+
+              <div style={{ marginTop: '1rem', borderTop: '1px dashed #ccc', paddingTop: '1rem' }}>
+                <strong style={{ color: '#d97706' }}>{language === 'MR' ? 'जोडीदाराच्या नावाची सुरुवातीची अक्षरे: ' : 'Partner Name Starting Letters: '}</strong>
+                {language === 'MR' ? partnerNameLetters.MR : partnerNameLetters.EN}
+                <span style={{ fontSize: '0.85em', color: '#666', marginLeft: '0.5rem' }}>
+                  {language === 'MR' ? '(७ व्या भावातील राशीनुसार)' : '(Based on the 7th House Sign)'}
+                </span>
+              </div>
             </div>
           </div>
           </div>
+        {/* Lucky Factors & Remedies */}
+        <div style={{ breakInside: 'avoid', marginBottom: '2rem' }}>
+          <h2 style={{ fontSize: '1.5rem', borderBottom: '2px solid #10b981', paddingBottom: '0.5rem', color: '#10b981' }}>
+            {language === 'MR' ? 'शुभ घटक आणि ज्योतिषीय उपाय' : 'Lucky Factors & Astrological Remedies'}
+          </h2>
+          <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            <div>
+              <strong>{language === 'MR' ? 'शुभ रंग:' : 'Lucky Colors:'}</strong> {language === 'MR' ? lucky.luckyColors.MR : lucky.luckyColors.EN}
+            </div>
+            <div>
+              <strong>{language === 'MR' ? 'शुभ अंक:' : 'Lucky Numbers:'}</strong> {lucky.luckyNumbers}
+            </div>
+            <div>
+              <strong>{language === 'MR' ? 'भाग्यवान रत्न:' : 'Lucky Gemstone:'}</strong> {language === 'MR' ? lucky.luckyStones.MR : lucky.luckyStones.EN}
+            </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <strong>{language === 'MR' ? 'ज्योतिषीय उपाय:' : 'Astrological Remedy:'}</strong> {language === 'MR' ? lucky.remedy.MR : lucky.remedy.EN}
+            </div>
+          </div>
+        </div>
         </>
       )}
 

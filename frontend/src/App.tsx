@@ -21,7 +21,8 @@ import {
 } from './data/interpretations';
 import { UI_TRANSLATIONS, PLANETS_MR, SIGNS_MR, NAKSHATRAS_MR, PREDICTIONS_MR } from './utils/i18n';
 import { CAREER_BY_10TH_SIGN, LOVE_BY_7TH_SIGN } from './utils/interpretations';
-import { analyzeMarriageType, analyzePartnerMeet, analyzeMangalDosh } from './engine/marriageAnalysis';
+import { analyzeMarriageType, analyzePartnerMeet, analyzeMangalDosh, getPartnerNameLetters } from './engine/marriageAnalysis';
+import { getLuckyFactors } from './engine/luckyFactors';
 import { analyzeJobType, analyzeJobSwitches } from './engine/careerAnalysis';
 
 interface Prediction {
@@ -581,6 +582,35 @@ export const App: React.FC = () => {
                         {localizedPredictions.birthDasha.text}
                       </p>
                     </div>
+                    
+                    {(() => {
+                      const lucky = getLuckyFactors(chartData);
+                      return (
+                        <div className="glass-panel" style={{ background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                          <h4 className="title-cosmic" style={{ fontSize: '1.25rem', color: '#10b981', marginBottom: '1rem' }}>
+                            {language === 'MR' ? 'शुभ घटक आणि उपाय' : 'Lucky Factors & Remedies'}
+                          </h4>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                            <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '1rem', borderRadius: '8px' }}>
+                              <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.25rem' }}>{language === 'MR' ? 'शुभ रंग' : 'Lucky Colors'}</div>
+                              <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff' }}>{language === 'MR' ? lucky.luckyColors.MR : lucky.luckyColors.EN}</div>
+                            </div>
+                            <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '1rem', borderRadius: '8px' }}>
+                              <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.25rem' }}>{language === 'MR' ? 'शुभ अंक' : 'Lucky Numbers'}</div>
+                              <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff' }}>{lucky.luckyNumbers}</div>
+                            </div>
+                            <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '1rem', borderRadius: '8px' }}>
+                              <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.25rem' }}>{language === 'MR' ? 'भाग्यवान रत्न' : 'Lucky Gemstone'}</div>
+                              <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff' }}>{language === 'MR' ? lucky.luckyStones.MR : lucky.luckyStones.EN}</div>
+                            </div>
+                          </div>
+                          <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '1rem', borderRadius: '8px' }}>
+                            <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.25rem' }}>{language === 'MR' ? 'ज्योतिषीय उपाय' : 'Astrological Remedy'}</div>
+                            <div style={{ fontSize: '1rem', color: '#cbd5e1', lineHeight: '1.5' }}>{language === 'MR' ? lucky.remedy.MR : lucky.remedy.EN}</div>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
 
@@ -795,6 +825,7 @@ export const App: React.FC = () => {
                               const marriagePrediction = analyzeMarriageType(chartData);
                               const partnerMeetPrediction = analyzePartnerMeet(chartData);
                               const mangalDoshPrediction = analyzeMangalDosh(chartData);
+                              const partnerNameLetters = getPartnerNameLetters(chartData);
                               return (
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', marginBottom: '1.5rem' }}>
                                   <div style={{ background: mangalDoshPrediction.hasDosh ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.05)', border: mangalDoshPrediction.hasDosh ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid rgba(16, 185, 129, 0.2)', borderRadius: '10px', padding: '1.25rem' }}>
@@ -836,6 +867,21 @@ export const App: React.FC = () => {
                                     </div>
                                     <p style={{ fontSize: '0.95rem', color: '#cbd5e1', margin: 0, lineHeight: '1.6' }}>
                                       {language === 'MR' ? partnerMeetPrediction.MR : partnerMeetPrediction.EN}
+                                    </p>
+                                  </div>
+
+                                  <div style={{ background: 'rgba(245, 158, 11, 0.05)', border: '1px solid rgba(245, 158, 11, 0.2)', borderRadius: '10px', padding: '1.25rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                      <span style={{ fontSize: '1.2rem' }}>📝</span>
+                                      <div style={{ fontSize: '0.9rem', color: '#f59e0b', fontWeight: 700, letterSpacing: '0.05em' }}>
+                                        {language === 'MR' ? 'जोडीदाराच्या नावाची सुरुवातीची अक्षरे' : 'PARTNER NAME STARTING LETTERS'}
+                                      </div>
+                                    </div>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '0.25rem' }}>
+                                      {language === 'MR' ? partnerNameLetters.MR : partnerNameLetters.EN}
+                                    </div>
+                                    <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: 0, lineHeight: '1.4' }}>
+                                      {language === 'MR' ? '(७ व्या भावातील राशीनुसार)' : '(Based on the 7th House Sign)'}
                                     </p>
                                   </div>
                                 </div>

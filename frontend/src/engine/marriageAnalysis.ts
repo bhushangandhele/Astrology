@@ -11,6 +11,11 @@ export interface PartnerMeetPrediction {
   MR: string;
 }
 
+export interface PartnerNameLetters {
+  EN: string;
+  MR: string;
+}
+
 export interface MangalDoshPrediction {
   hasDosh: boolean;
   statusEN: string;
@@ -110,7 +115,20 @@ export function analyzeMarriageType(chart: BirthChartResult): MarriagePrediction
     arrangedScore += 1;
   }
 
-  // Rule 6: No connection between 5th and 7th usually means Arranged
+  // Rule 6: 9th Lord (Tradition/Dharma) connection with 7th House or 7th Lord
+  const lord9 = chart.houses[9].signRuler;
+  const lord9Placement = chart.planets[lord9]?.house;
+  if (lord9Placement === 7 || lord7Placement === 9 || lord9Placement === lord7Placement) {
+    arrangedScore += 2;
+  }
+
+  // Rule 7: Moon (Mind/Emotions) in 5th, 7th, 11th
+  const moonPlacement = chart.planets['Moon']?.house;
+  if (moonPlacement !== undefined && [5, 7, 11].includes(moonPlacement)) {
+    loveScore += 1;
+  }
+
+  // Rule 8: No connection between 5th and 7th usually means Arranged
   if (loveScore === 0) {
     arrangedScore += 2;
   }
@@ -133,6 +151,26 @@ export function analyzeMarriageType(chart: BirthChartResult): MarriagePrediction
       EN: "Your chart shows a mix of traditional and romantic influences. This indicates a 'Love-cum-Arranged' marriage—you may find someone on your own but marry with full family approval, or an arranged meeting may quickly turn into deep romance.",
       MR: "तुमच्या कुंडलीत पारंपारिक आणि प्रेमळ प्रभावांचे मिश्रण आहे. हे 'लव्ह-कम-अरेंज' विवाह दर्शवते—तुम्ही स्वतः जोडीदार शोधू शकता आणि कुटुंबाच्या संमतीने लग्न करू शकता किंवा ठरवून दिलेल्या भेटीचे लवकरच प्रेमात रूपांतर होऊ शकते."
     };
+  }
+}
+
+export function getPartnerNameLetters(chart: BirthChartResult): PartnerNameLetters {
+  const house7Sign = chart.houses[7].signName;
+  
+  switch (house7Sign) {
+    case 'Aries': return { EN: 'A, L, E, I, O', MR: 'अ, आ, ल, इ, ई, ओ' };
+    case 'Taurus': return { EN: 'B, V, U, W', MR: 'ब, भ, व, उ, ऊ' };
+    case 'Gemini': return { EN: 'K, Ch, Gh, Q, C', MR: 'क, छ, घ, च' };
+    case 'Cancer': return { EN: 'H, D', MR: 'ह, ड' };
+    case 'Leo': return { EN: 'M, T', MR: 'म, ट' };
+    case 'Virgo': return { EN: 'P, Th, N', MR: 'प, ठ, ण' };
+    case 'Libra': return { EN: 'R, T', MR: 'र, त' };
+    case 'Scorpio': return { EN: 'N, Y', MR: 'न, य' };
+    case 'Sagittarius': return { EN: 'Bh, F, Dh, Th', MR: 'भ, फ, ध, थ' };
+    case 'Capricorn': return { EN: 'Kh, J', MR: 'ख, ज' };
+    case 'Aquarius': return { EN: 'G, S, Sh', MR: 'ग, स, श' };
+    case 'Pisces': return { EN: 'D, Ch, Z, Th', MR: 'द, च, झ, थ' };
+    default: return { EN: 'Unknown', MR: 'अज्ञात' };
   }
 }
 
