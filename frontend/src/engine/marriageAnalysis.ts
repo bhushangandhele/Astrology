@@ -1,4 +1,4 @@
-import { BirthChartResult, HouseInfo } from './chart';
+import type { BirthChartResult } from './chart';
 
 export interface MarriagePrediction {
   type: 'Love' | 'Arranged' | 'Love-cum-Arranged';
@@ -39,7 +39,7 @@ export function analyzeMarriageType(chart: BirthChartResult): MarriagePrediction
 
   // Rule 3: Venus (Planet of Love) in 1st, 5th, 7th, or 11th
   const venusPlacement = chart.planets['Venus']?.house;
-  if ([1, 5, 7, 11].includes(venusPlacement)) {
+  if (venusPlacement !== undefined && [1, 5, 7, 11].includes(venusPlacement)) {
     loveScore += 1;
   }
 
@@ -50,7 +50,7 @@ export function analyzeMarriageType(chart: BirthChartResult): MarriagePrediction
 
   // Rule 5: Jupiter (Tradition) in 7th or aspecting 7th leans towards Arranged
   const jupiterPlacement = chart.planets['Jupiter']?.house;
-  if ([1, 3, 7, 11].includes(jupiterPlacement)) {
+  if (jupiterPlacement !== undefined && [1, 3, 7, 11].includes(jupiterPlacement)) {
     arrangedScore += 1;
   }
 
