@@ -229,6 +229,21 @@ main.main-content {
   background: rgba(25, 20, 53, 0.85);
 }
 
+/* Hide number input spinners for cleaner UI */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.date-time-input {
+  padding: 0.6rem 0.25rem;
+  font-size: 0.95rem;
+}
+
 .btn-cosmic {
   background: linear-gradient(135deg, var(--color-purple-deep) 0%, var(--color-purple) 100%);
   border: 1px solid var(--glass-border);
@@ -432,8 +447,27 @@ footer a:hover {
     padding: 1rem !important;
   }
   
+  .tab-swipe-hint {
+    display: block !important;
+  }
+
   .glass-panel {
     padding: 1.25rem !important;
   }
+
+  .form-wrapper.mobile-collapsed {
+    display: none;
+  }
 }
 
+.print-only {
+  position: absolute;
+  top: -99999px;
+  left: 0;
+  width: 900px; /* Fixed width to mimic A4 proportions for PDF */
+  background: #ffffff;
+  color: #000000;
+  padding: 40px;
+  box-sizing: border-box;
+  z-index: -100;
+}

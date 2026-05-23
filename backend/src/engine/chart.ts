@@ -1,4 +1,5 @@
-import { MakeTime, EclipticLongitude, SiderealTime } from 'astronomy-engine';
+import { MakeTime, SiderealTime, GeoVector, Ecliptic, Body } from 'astronomy-engine';
+import { DateTime } from 'luxon';
 import { toSidereal, getAyanamsa } from './ayanamsa';
 import { getPlacementInfo, type PlacementInfo, RASHIS } from './astronomy';
 
@@ -61,22 +62,13 @@ export function calculateBirthChart(
   timezone: string,
   place: string = ''
 ): BirthChartResult {
-  // 1. Parse date and time in local timezone to get UTC Date object
-  // Standard format: 'YYYY-MM-DDTHH:MM:00'
-  const localDateTimeStr = `${dob}T${tob}:00`;
-  
-  // Calculate timezone offset in milliseconds
-  // We can also calculate UTC date using standard temporal/offset values if needed,
-  // but for simplicity we parse it directly by resolving the offset
-  // If we just use new Date(localDateTimeStr), JS parses it in host's timezone.
-  // To handle the input timezone properly, we can parse the parts and adjust using
-  // a robust timezone converter or standard offset parsing.
-  // Determine UTC time offset
-  // We can convert the date by creating a Date object and adjusting for the target timezone
-  const utcDate = new Date(new Date(localDateTimeStr).toLocaleString('en-US', { timeZone: timezone }));
-  const hostDate = new Date(localDateTimeStr);
-  const diffMs = hostDate.getTime() - utcDate.getTime();
-  const birthDateUTC = new Date(hostDate.getTime() + diffMs);
+  // Standard format: 'YYYY-MM-DD HH:mm'
+  // Use luxon for timezone-safe UTC conversion to prevent local host shifting issues
+  const dt = DateTime.fromFormat(`${dob} ${tob}`, 'yyyy-MM-dd HH:mm', { zone: timezone });
+  if (!dt.isValid) {
+    throw new Error(`Invalid date/time/timezone: ${dt.invalidReason}`);
+  }
+  const birthDateUTC = dt.toJSDate();
 
   // 2. Initialize AstroTime for astronomy-engine
   const time = MakeTime(birthDateUTC);
@@ -113,12 +105,21 @@ export function calculateBirthChart(
 
   for (const pName of planetNames) {
     let tropicalLon = 0;
-    if (pName === 'Sun') {
-      const earthLon = EclipticLongitude('Earth' as any, time);
-      tropicalLon = (earthLon + 180) % 360;
-    } else {
-      tropicalLon = EclipticLongitude(pName as any, time);
+    
+    // Convert string name to astronomy-engine Body enum safely
+    const bodyEnum = (Body as any)[pName];
+    
+    if (!bodyEnum) {
+      throw new Error(`Invalid planet name for astronomy-engine: ${pName}`);
     }
+
+    // Must use Geocentric Apparent coordinates for Astrology!
+    // GeoVector(body, time, aberration) computes geocentric coordinates.
+    // Aberration is set to true to get apparent geocentric position.
+    const geoVec = GeoVector(bodyEnum, time, true);
+    const ecl = Ecliptic(geoVec);
+    tropicalLon = ecl.elon; // True Geocentric Ecliptic Longitude
+    
     const siderealLon = toSidereal(tropicalLon, jd);
     const placement = getPlacementInfo(siderealLon);
     planets[pName] = {
@@ -126,6 +127,18 @@ export function calculateBirthChart(
       ...placement
     };
   }
+
+  // DEBUG LOGGING (As requested by user to verify calculation pipeline)
+  console.log("=== ASTRO ENGINE DEBUG LOGS ===");
+  console.log({
+    utcTime: birthDateUTC.toISOString(),
+    tropicalMoonLongitude: Ecliptic(GeoVector(Body.Moon, time, true)).elon,
+    ayanamsa,
+    siderealMoonLongitude: (planets['Moon'] as any).longitude,
+    moonRashi: planets['Moon'].sign,
+    nakshatra: planets['Moon'].nakshatra
+  });
+  console.log("===============================");
 
   // 5. Calculate Rahu and Ketu (Mean Nodes)
   // Mean Node formula

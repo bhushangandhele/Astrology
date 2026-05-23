@@ -103,9 +103,26 @@ export const CompatibilityCard: React.FC<CompatibilityCardProps> = ({
             {language === 'MR' ? `${maxScore} पैकी` : `out of ${maxScore}`}
           </span>
         </div>
-        <h4 style={{ fontSize: '1.25rem', color: scoreColor, fontWeight: 700, textAlign: 'center' }}>
+        <h4 style={{ fontSize: '1.25rem', color: scoreColor, fontWeight: 700, textAlign: 'center', marginBottom: '0.5rem' }}>
           {verdict}
         </h4>
+        {/* Explicit Marriage Recommendation Badge */}
+        <div style={{
+          background: score >= 18 && kootas['Nadi']?.score > 0 ? 'rgba(16, 185, 129, 0.15)' : score >= 18 ? 'rgba(245, 158, 11, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+          border: `1px solid ${score >= 18 && kootas['Nadi']?.score > 0 ? '#10b981' : score >= 18 ? '#f59e0b' : '#ef4444'}`,
+          padding: '0.5rem 1rem',
+          borderRadius: '20px',
+          color: score >= 18 && kootas['Nadi']?.score > 0 ? '#10b981' : score >= 18 ? '#f59e0b' : '#ef4444',
+          fontSize: '0.9rem',
+          fontWeight: 700,
+          marginTop: '0.25rem'
+        }}>
+          {score >= 18 && kootas['Nadi']?.score > 0 
+            ? (language === 'MR' ? '✅ विवाहासाठी अत्यंत शिफारस' : '✅ Marriage Highly Recommended') 
+            : score >= 18 
+            ? (language === 'MR' ? '⚠ उपायांसोबत विवाह शक्य' : '⚠ Possible with Remedies')
+            : (language === 'MR' ? '❌ विवाहासाठी अनुकूल नाही' : '❌ Marriage Not Recommended')}
+        </div>
       </div>
 
       {/* 3. Detailed Koota Breakdown Grid */}

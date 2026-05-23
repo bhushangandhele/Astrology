@@ -44,6 +44,27 @@ try {
   console.log(`Total Score: ${match.score} / ${match.maxScore}`);
   console.log(`Verdict: ${match.verdict}`);
   console.log('==================================================');
+
+  console.log('\n--- VERIFYING USER BUG FIX (Midnight UTC Boundary) ---');
+  const bName = 'Bhushan';
+  const bDob = '1999-11-15';
+  const bTob = '00:30';
+  const bLat = 21.0436;
+  const bLon = 75.7851;
+  const bTz = 'Asia/Kolkata';
+  
+  const bChart = calculateBirthChart(bName, bDob, bTob, bLat, bLon, bTz);
+  console.log(`Result for ${bDob} at ${bTob} IST:`);
+  console.log(`Moon Sign: ${bChart.planets.Moon.sign}`);
+  console.log(`Moon Nakshatra: ${bChart.planets.Moon.nakshatra}`);
+  
+  if (bChart.planets.Moon.sign === 'Capricorn' && bChart.planets.Moon.nakshatra === 'Shravana') {
+    console.log('✅ TEST PASSED: Midnight IST properly converted to UTC and Geocentric Sidereal Moon is accurate.');
+  } else {
+    console.error('❌ TEST FAILED: Expected Capricorn/Shravana but got', bChart.planets.Moon.sign, bChart.planets.Moon.nakshatra);
+  }
+  console.log('==================================================');
+
 } catch (err) {
   console.error('Error during engine verification:', err);
 }

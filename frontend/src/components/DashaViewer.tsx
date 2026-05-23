@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import type { Mahadasha } from '../engine/dasha';
 import { PLANETS_MR } from '../utils/i18n';
+import type { BirthChartResult } from '../engine/chart';
 
 interface DashaViewerProps {
   dashas: Mahadasha[];
   language?: 'EN' | 'MR';
+  chartData?: BirthChartResult;
 }
 
-export const DashaViewer: React.FC<DashaViewerProps> = ({ dashas, language = 'EN' }) => {
+export const DashaViewer: React.FC<DashaViewerProps> = ({ dashas, language = 'EN', chartData }) => {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(0);
 
   const toggleExpand = (index: number) => {
@@ -105,15 +107,46 @@ export const DashaViewer: React.FC<DashaViewerProps> = ({ dashas, language = 'EN
               {isExpanded && (
                 <div
                   style={{
-                    padding: '1rem 1.5rem',
+                    padding: '1.5rem',
                     background: 'rgba(255, 255, 255, 0.01)',
                     borderTop: '1px solid rgba(139, 92, 246, 0.1)',
+                  }}
+                >
+                  {/* Dynamic Prediction based on Chart */}
+                  {chartData && chartData.planets[dasha.lord] && (
+                    <div style={{
+                      marginBottom: '1.5rem',
+                      padding: '1rem',
+                      background: 'rgba(139, 92, 246, 0.1)',
+                      border: '1px solid rgba(139, 92, 246, 0.2)',
+                      borderRadius: '8px',
+                      color: '#e2e8f0',
+                      fontSize: '0.95rem',
+                      lineHeight: '1.6'
+                    }}>
+                      <div style={{ color: '#c084fc', fontWeight: 700, marginBottom: '0.5rem' }}>
+                        {language === 'MR' ? 'या काळात काय अपेक्षित आहे?' : 'What to expect during this period?'}
+                      </div>
+                      {language === 'MR' ? (
+                        <>
+                          तुमच्या कुंडलीत <strong>{lordName(dasha.lord)}</strong> हा ग्रह <strong>{(chartData.planets[dasha.lord] as any).house} व्या भावात (घरात)</strong> आहे.
+                          या महादशेमध्ये तुम्हाला {(chartData.planets[dasha.lord] as any).house} व्या भावाशी संबंधित फळे (उदा. करिअर, घर, संबंध) अधिक प्रकर्षाने मिळतील. ग्रहाच्या स्वभावानुसार तुमच्या जीवनात प्रमुख बदल आणि घटना घडतील.
+                        </>
+                      ) : (
+                        <>
+                          In your birth chart, <strong>{dasha.lord}</strong> is placed in the <strong>{(chartData.planets[dasha.lord] as any).house}th House</strong>. 
+                          During this Mahadasha, the themes of the {(chartData.planets[dasha.lord] as any).house}th house will become highly active in your life. You will experience major events, transformations, and results related to the significations of {dasha.lord} and its placement.
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  <div style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
                     gap: '0.75rem'
-                  }}
-                >
-                  {dasha.subDashas.map((sub, sIdx) => {
+                  }}>
+                    {dasha.subDashas.map((sub, sIdx) => {
                     const isSubCurrent = isCurrentDasha(sub.startDate, sub.endDate);
                     return (
                       <div
@@ -143,6 +176,7 @@ export const DashaViewer: React.FC<DashaViewerProps> = ({ dashas, language = 'EN
                       </div>
                     );
                   })}
+                  </div>
                 </div>
               )}
             </div>

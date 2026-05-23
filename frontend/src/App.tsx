@@ -4,12 +4,15 @@ import { ProfileForm, type BirthProfileData } from './components/ProfileForm';
 import { KundaliChart } from './components/KundaliChart';
 import { DashaViewer } from './components/DashaViewer';
 import { CompatibilityCard } from './components/CompatibilityCard';
+import { FullReport } from './components/FullReport';
 import type { BirthChartResult } from './engine/chart';
 import type { Mahadasha } from './engine/dasha';
 import type { MatchResult } from './engine/compatibility';
 import { calculateBirthChart } from './engine/chart';
 import { calculateVimshottariDasha } from './engine/dasha';
 import { calculateAshtakootMatch } from './engine/compatibility';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import {
   LAGNA_INTERPRETATIONS,
   SUN_HOUSE_INTERPRETATIONS,
@@ -19,7 +22,8 @@ import {
 } from './data/interpretations';
 import { UI_TRANSLATIONS, PLANETS_MR, SIGNS_MR, NAKSHATRAS_MR, PREDICTIONS_MR } from './utils/i18n';
 import { CAREER_BY_10TH_SIGN, LOVE_BY_7TH_SIGN } from './utils/interpretations';
-import { analyzeMarriageType, analyzePartnerMeet } from './engine/marriageAnalysis';
+import { analyzeMarriageType, analyzePartnerMeet, analyzeMangalDosh } from './engine/marriageAnalysis';
+import { analyzeJobType, analyzeJobSwitches } from './engine/careerAnalysis';
 
 interface Prediction {
   title: string;
@@ -39,7 +43,15 @@ export const App: React.FC = () => {
   const [language, setLanguage] = useState<'EN' | 'MR'>('EN');
 
   // Navigation / Tabs
-  const [activeTab, setActiveTab] = useState<'predictions' | 'chart' | 'dasha' | 'career' | 'love' | 'matching'>('predictions');
+  type TabType = 'predictions' | 'chart' | 'dasha' | 'career' | 'love' | 'matching';
+  const TAB_ORDER: TabType[] = ['predictions', 'chart', 'dasha', 'career', 'love', 'matching'];
+  const [activeTab, setActiveTab] = useState<TabType>('predictions');
+  
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  const [isMobileFormCollapsed, setIsMobileFormCollapsed] = useState(false);
 
   // Astrological Data State
   const [chartData, setChartData] = useState<BirthChartResult | null>(null);
@@ -52,6 +64,7 @@ export const App: React.FC = () => {
 
   // Matching Profile State
   const [isMatchingLoading, setIsMatchingLoading] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [partnerDetails, setPartnerDetails] = useState<BirthProfileData | null>(null);
   const [matchResult, setMatchResult] = useState<MatchResult | null>(null);
   const [partnerRashiData, setPartnerRashiData] = useState<any | null>(null);
@@ -160,6 +173,11 @@ export const App: React.FC = () => {
       setDashaData(dashas);
       setPredictionsData(predictions);
       setActiveTab('predictions'); // Focus on predictions on successful load
+      
+      // Auto-collapse form on mobile devices for better UX
+      if (window.innerWidth <= 1024) {
+        setIsMobileFormCollapsed(true);
+      }
     } catch (err: any) {
       console.error(err);
       setError(err.message || 'An error occurred during calculations. Please try again.');
@@ -227,6 +245,51 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleDownloadPDF = async () => {
+    const element = document.getElementById('full-print-report');
+    if (!element) return;
+    
+    setIsDownloading(true);
+    try {
+      // Small timeout to ensure layout is ready
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const canvas = await html2canvas(element, { 
+        scale: 2, 
+        useCORS: true,
+        logging: false
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      let heightLeft = imgHeight;
+      let position = 0;
+      
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+      heightLeft -= pdfHeight;
+      
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pdfHeight;
+      }
+      
+      pdf.save(`Kundali_${chartData?.name?.replace(/\\s+/g, '_') || 'Report'}.pdf`);
+    } catch (err) {
+      console.error('Failed to generate PDF:', err);
+      alert(language === 'MR' ? 'पीडीएफ तयार करण्यात त्रुटी आली.' : 'Error generating PDF.');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
     <div className="app-container">
       {/* Twilight Animated Starfield Background */}
@@ -239,8 +302,33 @@ export const App: React.FC = () => {
             <span style={{ fontSize: '1.8rem' }}>🌌</span>
             <h1 className="logo-text">{UI_TRANSLATIONS[language].astrologyTitle}</h1>
             
-            {/* Language Switcher */}
-            <div className="language-switcher" style={{ marginLeft: 'auto', display: 'flex', gap: '0.25rem', background: 'rgba(255,255,255,0.05)', padding: '3px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            {/* Language Switcher & Actions */}
+            <div className="language-switcher" style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              {chartData && (
+                <button
+                  type="button"
+                  onClick={handleDownloadPDF}
+                  disabled={isDownloading}
+                  className="btn-print"
+                  style={{
+                    background: isDownloading ? '#94a3b8' : 'linear-gradient(135deg, #10b981, #059669)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '16px',
+                    padding: '4px 12px',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    cursor: isDownloading ? 'wait' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                  title={language === 'MR' ? 'कुंडली डाउनलोड करा' : 'Download Kundali'}
+                >
+                  <span>{isDownloading ? '⏳' : '🖨️'}</span> {isDownloading ? (language === 'MR' ? 'बनवत आहे...' : 'Generating...') : (language === 'MR' ? 'डाउनलोड' : 'Download')}
+                </button>
+              )}
+              <div style={{ display: 'flex', gap: '0.25rem', background: 'rgba(255,255,255,0.05)', padding: '3px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
               <button 
                 type="button"
                 onClick={() => setLanguage('EN')}
@@ -276,44 +364,45 @@ export const App: React.FC = () => {
                 मराठी
               </button>
             </div>
+            </div>
           </div>
           {chartData && (
             <div className="nav-links">
               <button
                 className={`nav-button ${activeTab === 'predictions' ? 'active' : ''}`}
-                onClick={() => setActiveTab('predictions')}
+                onClick={() => handleTabChange('predictions')}
               >
                 {UI_TRANSLATIONS[language].lifePredictionsTab}
               </button>
               <button
                 className={`nav-button ${activeTab === 'chart' ? 'active' : ''}`}
-                onClick={() => setActiveTab('chart')}
+                onClick={() => handleTabChange('chart')}
               >
                 {UI_TRANSLATIONS[language].birthChartTab}
               </button>
               <button
                 className={`nav-button ${activeTab === 'dasha' ? 'active' : ''}`}
-                onClick={() => setActiveTab('dasha')}
+                onClick={() => handleTabChange('dasha')}
               >
                 {UI_TRANSLATIONS[language].vimshottariDashaTab}
               </button>
               <button
                 className={`nav-button ${activeTab === 'career' ? 'active' : ''}`}
-                onClick={() => setActiveTab('career')}
+                onClick={() => handleTabChange('career')}
                 style={{ color: activeTab === 'career' ? undefined : '#10b981' }}
               >
                 {language === 'MR' ? '💼 करिअर' : '💼 Career'}
               </button>
               <button
                 className={`nav-button ${activeTab === 'love' ? 'active' : ''}`}
-                onClick={() => setActiveTab('love')}
+                onClick={() => handleTabChange('love')}
                 style={{ color: activeTab === 'love' ? undefined : '#f472b6' }}
               >
                 {language === 'MR' ? '❤️ प्रेम/विवाह' : '❤️ Love & Marriage'}
               </button>
               <button
                 className={`nav-button ${activeTab === 'matching' ? 'active' : ''}`}
-                onClick={() => setActiveTab('matching')}
+                onClick={() => handleTabChange('matching')}
               >
                 {UI_TRANSLATIONS[language].gunMilanMatchingTab}
               </button>
@@ -327,11 +416,29 @@ export const App: React.FC = () => {
          <div className={chartData ? "workspace-layout" : "workspace-layout welcome"}>
            
            {/* Left Column: DOB Entry Form */}
-           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-             <ProfileForm onSubmit={handleCalculateChart} isLoading={isLoading} language={language} />
+           <div className="left-column">
+             <div className={`form-wrapper ${isMobileFormCollapsed ? 'mobile-collapsed' : ''}`}>
+               <ProfileForm onSubmit={handleCalculateChart} isLoading={isLoading} language={language} />
+             </div>
              
-             {chartData && (
-               <div className="glass-panel" style={{ padding: '1.25rem 1.5rem', background: 'rgba(25, 20, 53, 0.4)' }}>
+             {isMobileFormCollapsed && chartData && (
+               <div className="glass-panel collapsed-summary" style={{ padding: '1rem', background: 'rgba(25, 20, 53, 0.6)', border: '1px solid rgba(245, 158, 11, 0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                 <div>
+                   <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#f59e0b' }}>{chartData.name}</div>
+                   <div style={{ fontSize: '0.8rem', color: '#cbd5e1' }}>{chartData.dob} • {chartData.tob}</div>
+                 </div>
+                 <button 
+                   onClick={() => setIsMobileFormCollapsed(false)}
+                   className="btn-cosmic secondary"
+                   style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                 >
+                   {language === 'MR' ? 'संपादित करा' : 'Edit Details'}
+                 </button>
+               </div>
+             )}
+
+             {chartData && !isMobileFormCollapsed && (
+               <div className="glass-panel" style={{ padding: '1.25rem 1.5rem', background: 'rgba(25, 20, 53, 0.4)', marginTop: '1.5rem' }}>
                  <span style={{ fontSize: '0.8rem', color: '#94a3b8', letterSpacing: '0.05em' }}>
                    {language === 'MR' ? 'मोजणी केलेले प्रोफाईल:' : 'CALCULATING CHART FOR'}
                  </span>
@@ -372,7 +479,12 @@ export const App: React.FC = () => {
             )}
 
             {chartData ? (
-              <div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', paddingBottom: '3rem' }}>
+                {/* Visual Tab Swipe Hint (Mobile) */}
+                <div className="tab-swipe-hint" style={{ fontSize: '0.8rem', color: '#94a3b8', textAlign: 'right', marginTop: '-1.5rem', marginBottom: '0.5rem', fontStyle: 'italic', display: 'none' }}>
+                  {language === 'MR' ? 'अधिक टॅब पाहण्यासाठी डावीकडे स्वाइप करा ➡️' : 'Swipe tabs left for more ➡️'}
+                </div>
+
                 {/* 1. Life Predictions Tab */}
                 {activeTab === 'predictions' && localizedPredictions && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -488,16 +600,22 @@ export const App: React.FC = () => {
                         borderRadius: '0 12px 12px 0' 
                       }}
                     >
-                      <h4 style={{ color: '#c084fc', fontSize: '1.05rem', fontWeight: 600, marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        ⏳ {language === 'MR' ? 'विंशोत्तरी दशा म्हणजे काय?' : 'What is Vimshottari Dasha?'}
+                      <h4 style={{ color: '#c084fc', fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        🎯 {language === 'MR' ? 'सध्याची तुमची महादशा (सध्याचा काळ)' : 'Your Current Running Period (Active Dasha)'}
                       </h4>
-                      <p style={{ color: '#cbd5e1', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 }}>
-                        {language === 'MR'
-                          ? 'विंशोत्तरी दशा हे १२० वर्षांचे ग्रहांचे चक्र आहे. "महादशा" (Major Period) तुमच्या आयुष्यातील प्रमुख घटना आणि प्रवृत्ती ठरवते, तर "अंतर्दशा" (Sub Period) त्या काळात घडणाऱ्या विशिष्ट घटनांना चालना देते. खालील तक्त्यामध्ये तुमच्या आयुष्यात कोणत्या ग्रहाचा काळ कधी सुरू होतो आणि संपतो हे दिले आहे.'
-                          : 'Vimshottari Dasha is a 120-year planetary timeline. The Mahadasha (Major Period) indicates the overarching theme of your life, while the Antardasha (Sub-period) triggers specific events. The dates below show exactly when each planet\'s influence begins and ends.'}
+                      <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#fff', marginBottom: '0.75rem' }}>
+                        {localizedPredictions?.birthDasha?.title || ''}
+                      </div>
+                      <p style={{ color: '#e2e8f0', fontSize: '1.05rem', lineHeight: '1.7', margin: 0 }}>
+                        {localizedPredictions?.birthDasha?.text || ''}
                       </p>
+                      <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px dashed rgba(168, 85, 247, 0.3)', color: '#94a3b8', fontSize: '0.9rem' }}>
+                        <strong>{language === 'MR' ? 'हे काय आहे?' : 'What does this mean?'}</strong> {language === 'MR' 
+                          ? 'ज्योतिषशास्त्रानुसार, तुमचे सध्याचे आयुष्य वरील ग्रहाच्या नियंत्रणाखाली आहे. या ग्रहाच्या स्वभावानुसार तुमच्या जीवनात सध्या घटना घडत आहेत. खालील तक्त्यात तुमच्या आयुष्यातील सर्व ग्रहांचे काळ (दशा) कधी सुरू आणि संपतात हे दिले आहे.' 
+                          : 'In Vedic Astrology, your life runs through specific planetary periods. Right now, the planet listed above is controlling the major events and themes in your life. The timeline below shows when each planet takes control of your life.'}
+                      </div>
                     </div>
-                    <DashaViewer dashas={dashaData} language={language} />
+                    <DashaViewer dashas={dashaData} language={language} chartData={chartData} />
                   </div>
                 )}
 
@@ -539,13 +657,53 @@ export const App: React.FC = () => {
                         </div>
                         {careerInfo && (
                           <>
-                            <p style={{ fontSize: '1.05rem', lineHeight: '1.8', color: '#cbd5e1', marginBottom: '1.5rem' }}>{careerInfo.text}</p>
+                            <p style={{ fontSize: '1.05rem', lineHeight: '1.8', color: '#cbd5e1', marginBottom: '1.5rem' }}>{language === 'MR' ? careerInfo.textMR : careerInfo.textEN}</p>
+                            
+                            {/* NEW: Govt/Private Job & Job Switches */}
+                            {(() => {
+                              const jobTypePred = analyzeJobType(chartData);
+                              const jobSwitchPred = analyzeJobSwitches(chartData);
+                              return (
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                                  <div style={{ background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05))', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '10px', padding: '1.25rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                      <span style={{ fontSize: '1.2rem' }}>{jobTypePred.type === 'Government' ? '🏛️' : jobTypePred.type === 'Business' ? '📈' : '🏢'}</span>
+                                      <div style={{ fontSize: '0.9rem', color: '#10b981', fontWeight: 700, letterSpacing: '0.05em' }}>
+                                        {language === 'MR' ? 'करिअर प्रकार (Govt / Private / Business)' : 'CAREER TYPE PREDICTION'}
+                                      </div>
+                                    </div>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '0.5rem' }}>
+                                      {jobTypePred.type === 'Government' ? (language === 'MR' ? 'सरकारी नोकरी (Government Job)' : 'Government / Public Sector') : jobTypePred.type === 'Business' ? (language === 'MR' ? 'स्वतःचा व्यवसाय (Business/Trade)' : 'Business / Entrepreneurship') : (language === 'MR' ? 'खाजगी नोकरी (Private/Corporate Sector)' : 'Private / Corporate Sector')}
+                                    </div>
+                                    <p style={{ fontSize: '0.95rem', color: '#cbd5e1', margin: 0, lineHeight: '1.6' }}>
+                                      {language === 'MR' ? jobTypePred.MR : jobTypePred.EN}
+                                    </p>
+                                  </div>
+
+                                  <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '10px', padding: '1.25rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                      <span style={{ fontSize: '1.2rem' }}>🔄</span>
+                                      <div style={{ fontSize: '0.9rem', color: '#10b981', fontWeight: 700, letterSpacing: '0.05em' }}>
+                                        {language === 'MR' ? 'नोकरी बदलण्याची शक्यता (Job Switches)' : 'JOB SWITCH FREQUENCY'}
+                                      </div>
+                                    </div>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '0.5rem' }}>
+                                      {jobSwitchPred.frequency === 'High' ? (language === 'MR' ? 'वारंवार बदल (High)' : 'Frequent Switches') : jobSwitchPred.frequency === 'Low' ? (language === 'MR' ? 'स्थिर नोकरी (Low/Stable)' : 'Stable / Long-term') : (language === 'MR' ? 'मध्यम बदल (Moderate)' : 'Moderate Switches')}
+                                    </div>
+                                    <p style={{ fontSize: '0.95rem', color: '#cbd5e1', margin: 0, lineHeight: '1.6' }}>
+                                      {language === 'MR' ? jobSwitchPred.MR : jobSwitchPred.EN}
+                                    </p>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+
                             <div style={{ marginBottom: '1.5rem' }}>
                               <div style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 700, letterSpacing: '0.06em', marginBottom: '0.75rem' }}>
                                 {language === 'MR' ? 'शिफारस केलेले क्षेत्रे / व्यवसाय:' : 'RECOMMENDED CAREER FIELDS:'}
                               </div>
                               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                                {careerInfo.fields.map(f => (
+                                {(language === 'MR' ? careerInfo.fieldsMR : careerInfo.fieldsEN).map(f => (
                                   <span key={f} style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981', padding: '0.4rem 1rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600 }}>{f}</span>
                                 ))}
                               </div>
@@ -619,15 +777,15 @@ export const App: React.FC = () => {
                         </div>
                         {loveInfo && (
                           <>
-                            <p style={{ fontSize: '1.05rem', lineHeight: '1.8', color: '#cbd5e1', marginBottom: '1.5rem' }}>{loveInfo.text}</p>
+                            <p style={{ fontSize: '1.05rem', lineHeight: '1.8', color: '#cbd5e1', marginBottom: '1.5rem' }}>{language === 'MR' ? loveInfo.textMR : loveInfo.textEN}</p>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
                               <div style={{ background: 'rgba(244,114,182,0.07)', border: '1px solid rgba(244,114,182,0.2)', borderRadius: '10px', padding: '1rem' }}>
                                 <div style={{ fontSize: '0.75rem', color: '#f472b6', fontWeight: 700, letterSpacing: '0.06em', marginBottom: '0.5rem' }}>✨ {language === 'MR' ? 'जोडीदाराचे गुण' : 'SPOUSE TRAITS'}</div>
-                                <p style={{ fontSize: '0.9rem', color: '#cbd5e1', margin: 0, lineHeight: '1.6' }}>{loveInfo.spouseTraits}</p>
+                                <p style={{ fontSize: '0.9rem', color: '#cbd5e1', margin: 0, lineHeight: '1.6' }}>{language === 'MR' ? loveInfo.spouseTraitsMR : loveInfo.spouseTraitsEN}</p>
                               </div>
                               <div style={{ background: 'rgba(244,114,182,0.07)', border: '1px solid rgba(244,114,182,0.2)', borderRadius: '10px', padding: '1rem' }}>
                                 <div style={{ fontSize: '0.75rem', color: '#f472b6', fontWeight: 700, letterSpacing: '0.06em', marginBottom: '0.5rem' }}>💍 {language === 'MR' ? 'विवाह कालावधी' : 'MARRIAGE TIMING'}</div>
-                                <p style={{ fontSize: '0.9rem', color: '#cbd5e1', margin: 0, lineHeight: '1.6' }}>{loveInfo.timing}</p>
+                                <p style={{ fontSize: '0.9rem', color: '#cbd5e1', margin: 0, lineHeight: '1.6' }}>{language === 'MR' ? loveInfo.timingMR : loveInfo.timingEN}</p>
                               </div>
                             </div>
                             
@@ -635,8 +793,24 @@ export const App: React.FC = () => {
                             {(() => {
                               const marriagePrediction = analyzeMarriageType(chartData);
                               const partnerMeetPrediction = analyzePartnerMeet(chartData);
+                              const mangalDoshPrediction = analyzeMangalDosh(chartData);
                               return (
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                                  <div style={{ background: mangalDoshPrediction.hasDosh ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.05)', border: mangalDoshPrediction.hasDosh ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid rgba(16, 185, 129, 0.2)', borderRadius: '10px', padding: '1.25rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                      <span style={{ fontSize: '1.2rem' }}>{mangalDoshPrediction.hasDosh ? '🔥' : '✨'}</span>
+                                      <div style={{ fontSize: '0.9rem', color: mangalDoshPrediction.hasDosh ? '#ef4444' : '#10b981', fontWeight: 700, letterSpacing: '0.05em' }}>
+                                        {language === 'MR' ? 'मंगळ दोष विचार (Kuja Dosha)' : 'MANGAL DOSH ANALYSIS'}
+                                      </div>
+                                    </div>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#fff', marginBottom: '0.5rem' }}>
+                                      {language === 'MR' ? mangalDoshPrediction.statusMR : mangalDoshPrediction.statusEN}
+                                    </div>
+                                    <p style={{ fontSize: '0.95rem', color: '#cbd5e1', margin: 0, lineHeight: '1.6' }}>
+                                      {language === 'MR' ? mangalDoshPrediction.adviceMR : mangalDoshPrediction.adviceEN}
+                                    </p>
+                                  </div>
+
                                   <div style={{ background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(219, 39, 119, 0.05))', border: '1px solid rgba(236, 72, 153, 0.3)', borderRadius: '10px', padding: '1.25rem' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                                       <span style={{ fontSize: '1.2rem' }}>{marriagePrediction.type === 'Love' ? '💖' : marriagePrediction.type === 'Arranged' ? '🤝' : '💕'}</span>
@@ -757,6 +931,35 @@ export const App: React.FC = () => {
                     )}
                   </div>
                 )}
+
+                {/* Next Page Navigation Button */}
+                {(() => {
+                  const currentIndex = TAB_ORDER.indexOf(activeTab);
+                  if (currentIndex === -1 || currentIndex === TAB_ORDER.length - 1) return null;
+                  const nextTab = TAB_ORDER[currentIndex + 1];
+                  
+                  const getTabName = (tab: TabType) => {
+                    if (tab === 'predictions') return UI_TRANSLATIONS[language].lifePredictionsTab;
+                    if (tab === 'chart') return UI_TRANSLATIONS[language].birthChartTab;
+                    if (tab === 'dasha') return UI_TRANSLATIONS[language].vimshottariDashaTab;
+                    if (tab === 'career') return language === 'MR' ? '💼 करिअर' : '💼 Career';
+                    if (tab === 'love') return language === 'MR' ? '❤️ प्रेम/विवाह' : '❤️ Love & Marriage';
+                    if (tab === 'matching') return UI_TRANSLATIONS[language].gunMilanMatchingTab;
+                    return 'Next';
+                  };
+
+                  return (
+                    <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center' }}>
+                      <button
+                        onClick={() => handleTabChange(nextTab)}
+                        className="btn-cosmic secondary"
+                        style={{ padding: '0.75rem 2rem', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid var(--color-gold)' }}
+                      >
+                        {language === 'MR' ? 'पुढे जा:' : 'Next Page:'} <strong style={{ color: 'var(--color-gold)' }}>{getTabName(nextTab)}</strong> ➡️
+                      </button>
+                    </div>
+                  );
+                })()}
               </div>
             ) : (
               /* Landing Card / Welcome Onboarding Instructions & Creator badge */
@@ -903,6 +1106,9 @@ export const App: React.FC = () => {
           {language === 'MR' ? 'निर्मिती व रचना: भूषण गंधेले' : 'Designed & Developed by Bhushan Gandhele'}
         </p>
       </footer>
+
+      {/* Hidden Full Report for Printing */}
+      <FullReport chartData={chartData} dashaData={dashaData} localizedPredictions={localizedPredictions} language={language} />
     </div>
   );
 };

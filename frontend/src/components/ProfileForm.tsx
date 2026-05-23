@@ -26,11 +26,17 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   language = 'EN'
 }) => {
   const [name, setName] = useState('');
-  const [dob, setDob] = useState('');
-  const [tob, setTob] = useState('');
+  
+  // Custom Date/Time State for Mobile Compatibility
+  const [day, setDay] = useState('');
+  const [month, setMonth] = useState('');
+  const [year, setYear] = useState('');
+  
+  const [hour, setHour] = useState('');
+  const [minute, setMinute] = useState('');
+  const [ampm, setAmpm] = useState('AM');
+  
   const [place, setPlace] = useState('');
-  const [dobFocused, setDobFocused] = useState(false);
-  const [tobFocused, setTobFocused] = useState(false);
   
   // Geocoding coords & timezone
   const [latitude, setLatitude] = useState<number>(28.6139);
@@ -103,8 +109,24 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     const profile = savedProfiles.find(p => p.id === pId);
     if (profile) {
       setName(profile.name);
-      setDob(profile.dob);
-      setTob(profile.tob);
+      
+      // Parse YYYY-MM-DD
+      const [pYear, pMonth, pDay] = profile.dob.split('-');
+      setYear(pYear);
+      setMonth(pMonth);
+      setDay(pDay);
+
+      // Parse HH:mm
+      const [pHourStr, pMinStr] = profile.tob.split(':');
+      let pHour = parseInt(pHourStr, 10);
+      const pAmpm = pHour >= 12 ? 'PM' : 'AM';
+      if (pHour > 12) pHour -= 12;
+      if (pHour === 0) pHour = 12;
+      
+      setHour(pHour.toString());
+      setMinute(pMinStr);
+      setAmpm(pAmpm);
+
       setPlace(profile.place);
       setLatitude(profile.latitude);
       setLongitude(profile.longitude);
@@ -114,12 +136,21 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !dob || !tob || !place) return;
+    if (!name || !day || !month || !year || !hour || !minute || !place) return;
+
+    // Compile DOB (YYYY-MM-DD)
+    const compiledDob = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    
+    // Compile TOB (HH:mm in 24hr format)
+    let h24 = parseInt(hour, 10);
+    if (ampm === 'PM' && h24 !== 12) h24 += 12;
+    if (ampm === 'AM' && h24 === 12) h24 = 0;
+    const compiledTob = `${String(h24).padStart(2, '0')}:${minute.padStart(2, '0')}`;
 
     const profileData: BirthProfileData = {
       name,
-      dob,
-      tob,
+      dob: compiledDob,
+      tob: compiledTob,
       place,
       latitude,
       longitude,
@@ -189,35 +220,95 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         />
       </div>
 
-      <div className="grid-2" style={{ gap: '1rem', marginBottom: '1rem' }}>
-        <div className="form-group">
-          <label htmlFor="dob-picker">{t.dob}</label>
-          <input
-            id="dob-picker"
-            type={dobFocused || dob ? 'date' : 'text'}
-            onFocus={() => setDobFocused(true)}
-            onBlur={() => setDobFocused(false)}
-            placeholder={language === 'MR' ? 'जन्मतारीख निवडा 📅' : 'Select Birth Date 📅'}
-            className="input-cosmic"
-            required
-            value={dob}
-            onChange={e => setDob(e.target.value)}
-          />
+      <div className="grid-2" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>
+        {/* Custom Date Selector */}
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label>{t.dob}</label>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <input
+              type="number"
+              min="1"
+              max="31"
+              placeholder={language === 'MR' ? 'दिवस' : 'DD'}
+              className="input-cosmic date-time-input"
+              style={{ width: '28%', textAlign: 'center' }}
+              value={day}
+              onChange={e => setDay(e.target.value)}
+              required
+            />
+            <select
+              className="input-cosmic date-time-input"
+              style={{ width: '40%' }}
+              value={month}
+              onChange={e => setMonth(e.target.value)}
+              required
+            >
+              <option value="">{language === 'MR' ? 'महिना' : 'Month'}</option>
+              <option value="1">{language === 'MR' ? 'जानेवारी' : 'Jan'}</option>
+              <option value="2">{language === 'MR' ? 'फेब्रुवारी' : 'Feb'}</option>
+              <option value="3">{language === 'MR' ? 'मार्च' : 'Mar'}</option>
+              <option value="4">{language === 'MR' ? 'एप्रिल' : 'Apr'}</option>
+              <option value="5">{language === 'MR' ? 'मे' : 'May'}</option>
+              <option value="6">{language === 'MR' ? 'जून' : 'Jun'}</option>
+              <option value="7">{language === 'MR' ? 'जुलै' : 'Jul'}</option>
+              <option value="8">{language === 'MR' ? 'ऑगस्ट' : 'Aug'}</option>
+              <option value="9">{language === 'MR' ? 'सप्टेंबर' : 'Sep'}</option>
+              <option value="10">{language === 'MR' ? 'ऑक्टोबर' : 'Oct'}</option>
+              <option value="11">{language === 'MR' ? 'नोव्हेंबर' : 'Nov'}</option>
+              <option value="12">{language === 'MR' ? 'डिसेंबर' : 'Dec'}</option>
+            </select>
+            <input
+              type="number"
+              min="1900"
+              max="2100"
+              placeholder={language === 'MR' ? 'वर्ष' : 'YYYY'}
+              className="input-cosmic date-time-input"
+              style={{ width: '32%', textAlign: 'center' }}
+              value={year}
+              onChange={e => setYear(e.target.value)}
+              required
+            />
+          </div>
         </div>
 
-        <div className="form-group">
-          <label htmlFor="tob-picker">{t.tob}</label>
-          <input
-            id="tob-picker"
-            type={tobFocused || tob ? 'time' : 'text'}
-            onFocus={() => setTobFocused(true)}
-            onBlur={() => setTobFocused(false)}
-            placeholder={language === 'MR' ? 'जन्म वेळ निवडा ⏰' : 'Select Birth Time ⏰'}
-            className="input-cosmic"
-            required
-            value={tob}
-            onChange={e => setTob(e.target.value)}
-          />
+        {/* Custom Time Selector */}
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label>{t.tob}</label>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <select
+              className="input-cosmic date-time-input"
+              style={{ width: '35%', textAlign: 'center' }}
+              value={hour}
+              onChange={e => setHour(e.target.value)}
+              required
+            >
+              <option value="">{language === 'MR' ? 'तास' : 'HH'}</option>
+              {[...Array(12)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>{i + 1}</option>
+              ))}
+            </select>
+            <span style={{ color: '#fff', display: 'flex', alignItems: 'center', fontWeight: 600 }}>:</span>
+            <input
+              type="number"
+              min="0"
+              max="59"
+              placeholder={language === 'MR' ? 'मिनिट' : 'MM'}
+              className="input-cosmic date-time-input"
+              style={{ width: '35%', textAlign: 'center' }}
+              value={minute}
+              onChange={e => setMinute(e.target.value)}
+              required
+            />
+            <select
+              className="input-cosmic date-time-input"
+              style={{ width: '30%' }}
+              value={ampm}
+              onChange={e => setAmpm(e.target.value)}
+            >
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -307,7 +398,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         type="submit"
         className="btn-cosmic gold"
         style={{ width: '100%' }}
-        disabled={isLoading || !name || !dob || !tob || !place}
+        disabled={isLoading || !name || !day || !month || !year || !hour || !minute || !place}
       >
         {isLoading ? t.calculating : btnText}
       </button>

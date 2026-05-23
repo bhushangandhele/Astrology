@@ -11,6 +11,36 @@ export interface PartnerMeetPrediction {
   MR: string;
 }
 
+export interface MangalDoshPrediction {
+  hasDosh: boolean;
+  statusEN: string;
+  statusMR: string;
+  adviceEN: string;
+  adviceMR: string;
+}
+
+export function analyzeMangalDosh(chart: BirthChartResult): MangalDoshPrediction {
+  const marsPlacement = chart.planets['Mars']?.house;
+  
+  if (marsPlacement !== undefined && [1, 4, 7, 8, 12].includes(marsPlacement)) {
+    return {
+      hasDosh: true,
+      statusEN: `High Mangal Dosh (Mars in ${marsPlacement}th House)`,
+      statusMR: `मंगळ दोष आहे (मंगळ ${marsPlacement} व्या भावात)`,
+      adviceEN: "You have Mangal Dosh (Kuja Dosha). It is highly recommended to consult a Pandit for Kundali matching before marriage and perform necessary Shanti/remedies.",
+      adviceMR: "तुमच्या कुंडलीत मंगळ दोष आहे. लग्नापूर्वी एखाद्या जाणकार पंडिताकडून पत्रिका जुळवणी करून घेणे आणि आवश्यक असल्यास मंगळ शांती/उपाय करणे अत्यंत फायदेशीर ठरेल."
+    };
+  }
+  
+  return {
+    hasDosh: false,
+    statusEN: "No Mangal Dosh",
+    statusMR: "मंगळ दोष नाही",
+    adviceEN: "Your chart is free from major Mangal Dosh.",
+    adviceMR: "तुमच्या कुंडलीत कोणताही प्रमुख मंगळ दोष नाही."
+  };
+}
+
 export function analyzeMarriageType(chart: BirthChartResult): MarriagePrediction {
   // Logic to determine Love vs Arranged Marriage
   // 5th house = Romance, 7th house = Marriage
