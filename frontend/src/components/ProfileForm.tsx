@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { searchCities, type CityInfo } from '../utils/cities';
+import React, { useState, useEffect, useRef } from 'react';
+import { searchCitiesAsync, type CityInfo } from '../utils/cities';
 import { UI_TRANSLATIONS } from '../utils/i18n';
 
 export interface BirthProfileData {
@@ -64,13 +64,22 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     }
   };
 
+  const searchTimeoutRef = useRef<number | null>(null);
+
   const handleCityInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setPlace(val);
+    
+    if (searchTimeoutRef.current) {
+      window.clearTimeout(searchTimeoutRef.current);
+    }
+
     if (val.length >= 2) {
-      const suggestions = searchCities(val);
-      setCitySuggestions(suggestions);
-      setShowSuggestions(true);
+      searchTimeoutRef.current = window.setTimeout(async () => {
+        const suggestions = await searchCitiesAsync(val);
+        setCitySuggestions(suggestions);
+        setShowSuggestions(true);
+      }, 300);
     } else {
       setCitySuggestions([]);
       setShowSuggestions(false);
