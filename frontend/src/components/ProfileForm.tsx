@@ -4,6 +4,7 @@ import { UI_TRANSLATIONS } from '../utils/i18n';
 
 export interface BirthProfileData {
   name: string;
+  gender: 'Male' | 'Female';
   dob: string;
   tob: string;
   place: string;
@@ -26,6 +27,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   language = 'EN'
 }) => {
   const [name, setName] = useState('');
+  const [gender, setGender] = useState<'Male' | 'Female'>('Male');
   
   // Custom Date/Time State for Mobile Compatibility
   const [day, setDay] = useState('');
@@ -109,6 +111,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     const profile = savedProfiles.find(p => p.id === pId);
     if (profile) {
       setName(profile.name);
+      setGender(profile.gender || 'Male');
       
       // Parse YYYY-MM-DD
       const [pYear, pMonth, pDay] = profile.dob.split('-');
@@ -149,6 +152,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
 
     const profileData: BirthProfileData = {
       name,
+      gender,
       dob: compiledDob,
       tob: compiledTob,
       place,
@@ -207,17 +211,30 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         </div>
       )}
 
-      <div className="form-group">
-        <label htmlFor="user-name">{t.fullName}</label>
-        <input
-          id="user-name"
-          type="text"
-          className="input-cosmic"
-          required
-          placeholder={language === 'MR' ? 'नाव प्रविष्ट करा' : 'Enter name'}
-          value={name}
-          onChange={e => setName(e.target.value)}
-        />
+      <div className="grid-2" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label htmlFor="user-name">{t.fullName}</label>
+          <input
+            id="user-name"
+            type="text"
+            className="input-cosmic"
+            required
+            placeholder={language === 'MR' ? 'नाव प्रविष्ट करा' : 'Enter name'}
+            value={name}
+            onChange={e => setName(e.target.value)}
+          />
+        </div>
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label>{language === 'MR' ? 'लिंग' : 'Gender'}</label>
+          <select 
+            className="input-cosmic" 
+            value={gender} 
+            onChange={e => setGender(e.target.value as 'Male' | 'Female')}
+          >
+            <option value="Male">{language === 'MR' ? 'पुरुष' : 'Male'}</option>
+            <option value="Female">{language === 'MR' ? 'स्त्री' : 'Female'}</option>
+          </select>
+        </div>
       </div>
 
       <div className="grid-2" style={{ gap: '1.5rem', marginBottom: '1.5rem' }}>

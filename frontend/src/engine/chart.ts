@@ -18,6 +18,7 @@ export interface HouseInfo {
 
 export interface BirthChartResult {
   name: string;
+  gender: 'Male' | 'Female';
   dob: string;
   tob: string;
   place: string;
@@ -55,16 +56,17 @@ export function getObliquity(julianDate: number): number {
  */
 export function calculateBirthChart(
   name: string,
-  dob: string, // YYYY-MM-DD
-  tob: string, // HH:MM
-  latitude: number,
-  longitude: number,
+  gender: 'Male' | 'Female',
+  dateStr: string, // YYYY-MM-DD
+  timeStr: string, // HH:MM
+  lat: number,
+  lng: number,
   timezone: string,
-  place: string = ''
+  place: string
 ): BirthChartResult {
   // Standard format: 'YYYY-MM-DD HH:mm'
   // Use luxon for timezone-safe UTC conversion to prevent local host shifting issues
-  const dt = DateTime.fromFormat(`${dob} ${tob}`, 'yyyy-MM-dd HH:mm', { zone: timezone });
+  const dt = DateTime.fromFormat(`${dateStr} ${timeStr}`, 'yyyy-MM-dd HH:mm', { zone: timezone });
   if (!dt.isValid) {
     throw new Error(`Invalid date/time/timezone: ${dt.invalidReason}`);
   }
@@ -79,12 +81,12 @@ export function calculateBirthChart(
   // Get Greenwich Apparent Sidereal Time (GAST) in hours
   const gastHours = SiderealTime(time);
   const gastDeg = gastHours * 15;
-  const lst = (gastDeg + longitude % 360 + 360) % 360;
+  const lst = (gastDeg + lng % 360 + 360) % 360;
   const eps = getObliquity(jd);
 
   const LST_rad = lst * Math.PI / 180;
   const eps_rad = eps * Math.PI / 180;
-  const lat_rad = latitude * Math.PI / 180;
+  const lat_rad = lat * Math.PI / 180;
 
   const y = Math.cos(LST_rad);
   const x = -(Math.sin(eps_rad) * Math.tan(lat_rad) + Math.cos(eps_rad) * Math.sin(LST_rad));
@@ -182,11 +184,12 @@ export function calculateBirthChart(
 
   return {
     name,
-    dob,
-    tob,
+    gender,
+    dob: dateStr,
+    tob: timeStr,
     place,
-    latitude,
-    longitude,
+    latitude: lat,
+    longitude: lng,
     timezone,
     julianDate: jd,
     ayanamsa,

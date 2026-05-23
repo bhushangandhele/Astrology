@@ -417,16 +417,21 @@ footer a:hover {
   }
 
   .nav-links {
-    display: flex;
-    gap: 0.4rem;
-    overflow-x: auto;
-    white-space: nowrap;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
     width: 100vw;
-    margin: 0 -1rem;
-    padding: 0.5rem 1rem;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    margin: 0;
+    padding: 0.5rem 0.5rem 1.5rem 0.5rem; /* bottom padding for safe area */
+    background: rgba(15, 12, 33, 0.95);
+    backdrop-filter: blur(15px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.2rem;
+    z-index: 1000;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
   }
   
   .nav-links::-webkit-scrollbar {
@@ -434,21 +439,41 @@ footer a:hover {
   }
   
   .nav-button {
-    padding: 0.4rem 0.75rem !important;
-    font-size: 0.88rem !important;
-    flex-shrink: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 0.4rem 0.2rem !important;
+    font-size: 0.65rem !important;
+    background: transparent !important;
+    color: #94a3b8 !important;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+  }
+  
+  .nav-button span {
+    font-size: 1.3rem;
+    margin-bottom: 2px;
+  }
+  
+  .nav-button.active {
+    color: #fbbf24 !important;
+    background: rgba(251, 191, 36, 0.15) !important;
+    transform: translateY(-2px);
   }
   
   .nav-button::after {
-    bottom: -2px !important;
+    display: none !important;
   }
 
   main.main-content {
-    padding: 1rem !important;
+    padding: 1rem 1rem 90px 1rem !important;
   }
   
   .tab-swipe-hint {
-    display: block !important;
+    display: none !important;
   }
 
   .glass-panel {

@@ -132,6 +132,7 @@ export const App: React.FC = () => {
       // 1. Calculate Birth Chart client-side
       const chart = calculateBirthChart(
         profile.name,
+        profile.gender,
         profile.dob,
         profile.tob,
         Number(profile.latitude),
@@ -192,28 +193,21 @@ export const App: React.FC = () => {
     setError(null);
 
     try {
-      const brideProfile = {
-        name: chartData.name,
-        dob: chartData.dob,
-        tob: chartData.tob,
-        latitude: chartData.latitude,
-        longitude: chartData.longitude,
-        timezone: chartData.timezone
-      };
-
       // 1. Calculate Moon Longitudes for both profiles client-side
       const chartA = calculateBirthChart(
-        brideProfile.name,
-        brideProfile.dob,
-        brideProfile.tob,
-        Number(brideProfile.latitude),
-        Number(brideProfile.longitude),
-        brideProfile.timezone,
+        chartData.name,
+        chartData.gender,
+        chartData.dob,
+        chartData.tob,
+        Number(chartData.latitude),
+        Number(chartData.longitude),
+        chartData.timezone,
         chartData.place || ''
       );
 
       const chartB = calculateBirthChart(
         partnerProfile.name,
+        partnerProfile.gender,
         partnerProfile.dob,
         partnerProfile.tob,
         Number(partnerProfile.latitude),
@@ -222,11 +216,23 @@ export const App: React.FC = () => {
         partnerProfile.place || ''
       );
 
-      const moonLongA = chartA.planets.Moon.longitude;
-      const moonLongB = chartB.planets.Moon.longitude;
+      let brideMoon, groomMoon;
+      
+      // Traditional Ashtakoot expects Bride first, Groom second
+      if (chartA.gender === 'Female' && chartB.gender === 'Male') {
+        brideMoon = chartA.planets.Moon.longitude;
+        groomMoon = chartB.planets.Moon.longitude;
+      } else if (chartA.gender === 'Male' && chartB.gender === 'Female') {
+        brideMoon = chartB.planets.Moon.longitude;
+        groomMoon = chartA.planets.Moon.longitude;
+      } else {
+        // Fallback for same-sex or undefined
+        brideMoon = chartA.planets.Moon.longitude;
+        groomMoon = chartB.planets.Moon.longitude;
+      }
 
       // 2. Perform Ashtakoot Gun Milan Matching client-side
-      const match = calculateAshtakootMatch(moonLongA, moonLongB);
+      const match = calculateAshtakootMatch(brideMoon, groomMoon);
 
       setPartnerDetails(partnerProfile);
       setPartnerRashiData({
@@ -354,39 +360,39 @@ export const App: React.FC = () => {
                 className={`nav-button ${activeTab === 'predictions' ? 'active' : ''}`}
                 onClick={() => handleTabChange('predictions')}
               >
-                {UI_TRANSLATIONS[language].lifePredictionsTab}
+                <span>🔮</span> <div>{UI_TRANSLATIONS[language].lifePredictionsTab}</div>
               </button>
               <button
                 className={`nav-button ${activeTab === 'chart' ? 'active' : ''}`}
                 onClick={() => handleTabChange('chart')}
               >
-                {UI_TRANSLATIONS[language].birthChartTab}
+                <span>🌌</span> <div>{UI_TRANSLATIONS[language].birthChartTab}</div>
               </button>
               <button
                 className={`nav-button ${activeTab === 'dasha' ? 'active' : ''}`}
                 onClick={() => handleTabChange('dasha')}
               >
-                {UI_TRANSLATIONS[language].vimshottariDashaTab}
+                <span>⏳</span> <div>{UI_TRANSLATIONS[language].vimshottariDashaTab}</div>
               </button>
               <button
                 className={`nav-button ${activeTab === 'career' ? 'active' : ''}`}
                 onClick={() => handleTabChange('career')}
                 style={{ color: activeTab === 'career' ? undefined : '#10b981' }}
               >
-                {language === 'MR' ? '💼 करिअर' : '💼 Career'}
+                <span>💼</span> <div>{language === 'MR' ? 'करिअर' : 'Career'}</div>
               </button>
               <button
                 className={`nav-button ${activeTab === 'love' ? 'active' : ''}`}
                 onClick={() => handleTabChange('love')}
                 style={{ color: activeTab === 'love' ? undefined : '#f472b6' }}
               >
-                {language === 'MR' ? '❤️ प्रेम/विवाह' : '❤️ Love & Marriage'}
+                <span>❤️</span> <div>{language === 'MR' ? 'प्रेम' : 'Love'}</div>
               </button>
               <button
                 className={`nav-button ${activeTab === 'matching' ? 'active' : ''}`}
                 onClick={() => handleTabChange('matching')}
               >
-                {UI_TRANSLATIONS[language].gunMilanMatchingTab}
+                <span>💞</span> <div>{UI_TRANSLATIONS[language].gunMilanMatchingTab}</div>
               </button>
             </div>
           )}
