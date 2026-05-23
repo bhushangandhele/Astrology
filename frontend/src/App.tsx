@@ -11,8 +11,7 @@ import type { MatchResult } from './engine/compatibility';
 import { calculateBirthChart } from './engine/chart';
 import { calculateVimshottariDasha } from './engine/dasha';
 import { calculateAshtakootMatch } from './engine/compatibility';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
+import html2pdf from 'html2pdf.js';
 import {
   LAGNA_INTERPRETATIONS,
   SUN_HOUSE_INTERPRETATIONS,
@@ -254,34 +253,17 @@ export const App: React.FC = () => {
       // Small timeout to ensure layout is ready
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      const canvas = await html2canvas(element, { 
-        scale: 2, 
-        useCORS: true,
-        logging: false
-      });
-      
-      const imgData = canvas.toDataURL('image/png');
-      
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      
-      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      let heightLeft = imgHeight;
-      let position = 0;
-      
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-      heightLeft -= pdfHeight;
-      
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-        heightLeft -= pdfHeight;
-      }
-      
-      pdf.save(`Kundali_${chartData?.name?.replace(/\\s+/g, '_') || 'Report'}.pdf`);
+      const opt = {
+        margin:       10,
+        filename:     `Kundali_${chartData?.name?.replace(/\\s+/g, '_') || 'Report'}.pdf`,
+        image:        { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
+        pagebreak:    { mode: ['css', 'legacy'] }
+      };
+
+      await html2pdf().set(opt).from(element).save();
+
     } catch (err) {
       console.error('Failed to generate PDF:', err);
       alert(language === 'MR' ? 'पीडीएफ तयार करण्यात त्रुटी आली.' : 'Error generating PDF.');

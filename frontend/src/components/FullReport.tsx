@@ -1,5 +1,4 @@
 import React from 'react';
-import { KundaliChart } from './KundaliChart';
 import { DashaViewer } from './DashaViewer';
 import type { BirthChartResult } from '../engine/chart';
 import type { Mahadasha } from '../engine/dasha';
@@ -59,17 +58,10 @@ export const FullReport: React.FC<FullReportProps> = ({ chartData, dashaData, lo
         </div>
       </div>
 
-      {/* 1. Kundali Chart */}
-      <div className="page-break-after" style={{ marginBottom: '4rem' }}>
-        <h3 style={{ fontSize: '1.5rem', borderBottom: '1px solid #ccc', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>1. {language === 'MR' ? 'जन्म कुंडली' : 'Birth Chart (Kundali)'}</h3>
-        <div style={{ maxWidth: '600px', margin: '0 auto', border: '1px solid #eee', padding: '1rem', borderRadius: '8px' }}>
-          <KundaliChart chart={chartData} language={language} />
-        </div>
-      </div>
-
-      {/* 2. Predictions */}
-      <div className="page-break-after" style={{ marginBottom: '4rem' }}>
-        <h3 style={{ fontSize: '1.5rem', borderBottom: '1px solid #ccc', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>2. {language === 'MR' ? 'व्यक्तिमत्व आणि जीवन फलादेश' : 'Personality & Life Predictions'}</h3>
+      {/* 2. Predictions (Starts on new page) */}
+      <div className="html2pdf__page-break"></div>
+      <div style={{ marginBottom: '4rem', marginTop: '2rem' }}>
+        <h3 style={{ fontSize: '1.5rem', borderBottom: '1px solid #ccc', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>1. {language === 'MR' ? 'व्यक्तिमत्व आणि जीवन फलादेश' : 'Personality & Life Predictions'}</h3>
         
         <div style={{ marginBottom: '1.5rem' }}>
           <h4 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>{localizedPredictions.ascendant.title}</h4>
@@ -94,8 +86,10 @@ export const FullReport: React.FC<FullReportProps> = ({ chartData, dashaData, lo
 
       {/* 3. Career */}
       {careerInfo && (
-        <div className="page-break-after" style={{ marginBottom: '4rem' }}>
-          <h3 style={{ fontSize: '1.5rem', borderBottom: '1px solid #ccc', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>3. {language === 'MR' ? 'करिअर आणि व्यवसाय' : 'Career & Profession'}</h3>
+        <>
+          <div className="html2pdf__page-break"></div>
+          <div style={{ marginBottom: '4rem', marginTop: '2rem' }}>
+            <h3 style={{ fontSize: '1.5rem', borderBottom: '1px solid #ccc', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>2. {language === 'MR' ? 'करिअर आणि व्यवसाय' : 'Career & Profession'}</h3>
           
           <p style={{ fontSize: '1.1rem', lineHeight: '1.6', marginBottom: '1.5rem' }}>{language === 'MR' ? careerInfo.textMR : careerInfo.textEN}</p>
           
@@ -114,13 +108,16 @@ export const FullReport: React.FC<FullReportProps> = ({ chartData, dashaData, lo
             <strong>{language === 'MR' ? 'शिफारस केलेले क्षेत्रे:' : 'Recommended Fields:'} </strong>
             {(language === 'MR' ? careerInfo.fieldsMR : careerInfo.fieldsEN).join(', ')}
           </div>
-        </div>
+          </div>
+        </>
       )}
 
       {/* 4. Love & Marriage */}
       {loveInfo && (
-        <div className="page-break-after" style={{ marginBottom: '4rem' }}>
-          <h3 style={{ fontSize: '1.5rem', borderBottom: '1px solid #ccc', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>4. {language === 'MR' ? 'प्रेम आणि विवाह' : 'Love & Marriage'}</h3>
+        <>
+          <div className="html2pdf__page-break"></div>
+          <div style={{ marginBottom: '4rem', marginTop: '2rem' }}>
+            <h3 style={{ fontSize: '1.5rem', borderBottom: '1px solid #ccc', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>3. {language === 'MR' ? 'प्रेम आणि विवाह' : 'Love & Marriage'}</h3>
           
           <p style={{ fontSize: '1.1rem', lineHeight: '1.6', marginBottom: '1.5rem' }}>{language === 'MR' ? loveInfo.textMR : loveInfo.textEN}</p>
           
@@ -152,20 +149,24 @@ export const FullReport: React.FC<FullReportProps> = ({ chartData, dashaData, lo
               </div>
             </div>
           </div>
-        </div>
+          </div>
+        </>
       )}
 
       {/* 5. Dashas */}
       {dashaData && (
-        <div style={{ marginBottom: '4rem' }}>
-          <h3 style={{ fontSize: '1.5rem', borderBottom: '1px solid #ccc', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>5. {language === 'MR' ? 'विंशोत्तरी दशा' : 'Vimshottari Dasha'}</h3>
-          <p style={{ marginBottom: '1rem' }}>
-             <strong>{language === 'MR' ? 'सध्याची तुमची महादशा:' : 'Current Active Period:'}</strong> {localizedPredictions.birthDasha.title}
-          </p>
-          <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
-            <DashaViewer dashas={dashaData} language={language} chartData={chartData} />
+        <>
+          <div className="html2pdf__page-break"></div>
+          <div style={{ marginBottom: '4rem', marginTop: '2rem' }}>
+            <h3 style={{ fontSize: '1.5rem', borderBottom: '1px solid #ccc', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>4. {language === 'MR' ? 'विंशोत्तरी दशा' : 'Vimshottari Dasha'}</h3>
+            <p style={{ marginBottom: '1rem' }}>
+               <strong>{language === 'MR' ? 'सध्याची तुमची महादशा:' : 'Current Active Period:'}</strong> {localizedPredictions.birthDasha.title}
+            </p>
+            <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+              <DashaViewer dashas={dashaData} language={language} chartData={chartData} />
+            </div>
           </div>
-        </div>
+        </>
       )}
 
     </div>
