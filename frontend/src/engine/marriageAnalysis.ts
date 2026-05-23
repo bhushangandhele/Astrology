@@ -21,17 +21,43 @@ export interface MangalDoshPrediction {
 
 export function analyzeMangalDosh(chart: BirthChartResult): MangalDoshPrediction {
   const marsPlacement = chart.planets['Mars']?.house;
+  const marsSign = chart.planets['Mars']?.signNumber;
+  const moonSign = chart.planets['Moon']?.signNumber;
+
+  const doshaHouses = [1, 2, 4, 7, 8, 12];
   
-  if (marsPlacement !== undefined && [1, 4, 7, 8, 12].includes(marsPlacement)) {
+  let hasLagnaDosh = false;
+  if (marsPlacement !== undefined && doshaHouses.includes(marsPlacement)) {
+    hasLagnaDosh = true;
+  }
+
+  let hasMoonDosh = false;
+  let marsHouseFromMoon = -1;
+  if (marsSign !== undefined && moonSign !== undefined) {
+    marsHouseFromMoon = (marsSign - moonSign + 12) % 12 + 1;
+    if (doshaHouses.includes(marsHouseFromMoon)) {
+      hasMoonDosh = true;
+    }
+  }
+
+  if (hasLagnaDosh) {
     return {
       hasDosh: true,
-      statusEN: `High Mangal Dosh (Mars in ${marsPlacement}th House)`,
-      statusMR: `मंगळ दोष आहे (मंगळ ${marsPlacement} व्या भावात)`,
-      adviceEN: "You have Mangal Dosh (Kuja Dosha). It is highly recommended to consult a Pandit for Kundali matching before marriage and perform necessary Shanti/remedies.",
-      adviceMR: "तुमच्या कुंडलीत मंगळ दोष आहे. लग्नापूर्वी एखाद्या जाणकार पंडिताकडून पत्रिका जुळवणी करून घेणे आणि आवश्यक असल्यास मंगळ शांती/उपाय करणे अत्यंत फायदेशीर ठरेल."
+      statusEN: `High Mangal Dosh (Mars in ${marsPlacement}th House from Ascendant)`,
+      statusMR: `पूर्ण मंगळ दोष (मंगळ लग्नापासून ${marsPlacement} व्या भावात)`,
+      adviceEN: "You have High (Purna) Mangal Dosh. It is highly recommended to consult a Pandit for Kundali matching before marriage and perform necessary Shanti/remedies.",
+      adviceMR: "तुमच्या कुंडलीत 'पूर्ण मंगळ दोष' आहे. लग्नापूर्वी एखाद्या जाणकार पंडिताकडून पत्रिका जुळवणी करून घेणे आणि आवश्यक असल्यास मंगळ शांती करणे अत्यंत फायदेशीर ठरेल."
+    };
+  } else if (hasMoonDosh) {
+    return {
+      hasDosh: true,
+      statusEN: `Low Mangal Dosh (Mars in ${marsHouseFromMoon}th House from Moon)`,
+      statusMR: `आंशिक मंगळ दोष (मंगळ चंद्रापासून ${marsHouseFromMoon} व्या भावात)`,
+      adviceEN: "You have Low (Anshik) Mangal Dosh. The effects are milder, but standard compatibility matching is still advised.",
+      adviceMR: "तुमच्या कुंडलीत 'आंशिक मंगळ दोष' (चंद्रावरून) आहे. याचा प्रभाव कमी असतो, तरीही लग्नापूर्वी पत्रिका जुळवणी करणे योग्य राहील."
     };
   }
-  
+
   return {
     hasDosh: false,
     statusEN: "No Mangal Dosh",
