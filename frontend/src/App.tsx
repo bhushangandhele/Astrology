@@ -256,18 +256,6 @@ export const App: React.FC = () => {
     
     setIsDownloading(true);
     
-    const origDisplay = element.style.display;
-    const origPosition = element.style.position;
-    const origLeft = element.style.left;
-    const origTop = element.style.top;
-    const origZIndex = element.style.zIndex;
-
-    element.style.display = 'block';
-    element.style.position = 'absolute';
-    element.style.left = '0px';
-    element.style.top = '0px';
-    element.style.zIndex = '-9999';
-
     try {
       // Small timeout to ensure layout is ready
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -287,11 +275,6 @@ export const App: React.FC = () => {
       console.error('Failed to generate PDF:', err);
       alert(language === 'MR' ? 'पीडीएफ तयार करण्यात त्रुटी आली.' : 'Error generating PDF.');
     } finally {
-      element.style.display = origDisplay;
-      element.style.position = origPosition;
-      element.style.left = origLeft;
-      element.style.top = origTop;
-      element.style.zIndex = origZIndex;
       setIsDownloading(false);
     }
   };
@@ -1126,7 +1109,9 @@ export const App: React.FC = () => {
       </footer>
 
       {/* Hidden Full Report for Printing */}
-      <FullReport chartData={chartData} dashaData={dashaData} localizedPredictions={(localizedPredictions || {}) as Record<string, { title: string; text: string; }>} language={language} />
+      <div style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}>
+        <FullReport chartData={chartData} dashaData={dashaData} localizedPredictions={(localizedPredictions || {}) as Record<string, { title: string; text: string; }>} language={language} />
+      </div>
     </div>
   );
 };

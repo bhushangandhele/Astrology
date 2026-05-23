@@ -15,7 +15,7 @@ interface FullReportProps {
 }
 
 export const FullReport: React.FC<FullReportProps> = ({ chartData, dashaData, localizedPredictions, language }) => {
-  if (!chartData || !localizedPredictions) return null;
+  if (!chartData || !localizedPredictions || !localizedPredictions.ascendant) return null;
 
   const tenth = chartData.houses[10];
   const careerInfo = tenth ? CAREER_BY_10TH_SIGN[tenth.signName] : null;

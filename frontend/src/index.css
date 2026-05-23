@@ -485,7 +485,6 @@ footer a:hover {
 }
 
 .print-only {
-  display: none;
   width: 900px; /* Fixed width to mimic A4 proportions for PDF */
   background: #ffffff;
   color: #000000;
