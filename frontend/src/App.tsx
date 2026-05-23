@@ -39,7 +39,7 @@ interface PredictionsData {
 
 export const App: React.FC = () => {
   // Language Selection
-  const [language, setLanguage] = useState<'EN' | 'MR'>('EN');
+  const [language, setLanguage] = useState<'EN' | 'MR'>('MR');
 
   // Navigation / Tabs
   type TabType = 'predictions' | 'chart' | 'dasha' | 'career' | 'love' | 'matching';

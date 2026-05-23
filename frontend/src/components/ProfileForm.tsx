@@ -110,7 +110,21 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   const handleSelectSavedProfile = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const pId = e.target.value;
     setSelectedProfileId(pId);
-    if (!pId) return;
+    if (!pId) {
+      setName('');
+      setGender('Male');
+      setYear('');
+      setMonth('');
+      setDay('');
+      setHour('');
+      setMinute('');
+      setAmpm('AM');
+      setPlace('');
+      setLatitude(0);
+      setLongitude(0);
+      setTimezone('');
+      return;
+    }
 
     const profile = savedProfiles.find(p => p.id === pId);
     if (profile) {

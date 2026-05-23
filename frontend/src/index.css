@@ -421,7 +421,6 @@ footer a:hover {
     bottom: 0;
     left: 0;
     right: 0;
-    width: 100vw;
     margin: 0;
     padding: 0.5rem 0.5rem 1.5rem 0.5rem; /* bottom padding for safe area */
     background: rgba(15, 12, 33, 0.95);
