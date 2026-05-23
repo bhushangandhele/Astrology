@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { searchCitiesAsync, type CityInfo } from '../utils/cities';
 import { UI_TRANSLATIONS } from '../utils/i18n';
 
@@ -50,14 +50,18 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   // Saved profiles state
-  const [savedProfiles, setSavedProfiles] = useState<any[]>([]);
+  const [savedProfiles, setSavedProfiles] = useState<(BirthProfileData & {id: string})[]>(() => {
+    try {
+      const saved = localStorage.getItem('astro_profiles');
+      return saved ? JSON.parse(saved) : [];
+    } catch (err) {
+      console.error('Failed to parse saved profiles', err);
+      return [];
+    }
+  });
+  
   const [selectedProfileId, setSelectedProfileId] = useState('');
   const [shouldSaveProfile, setShouldSaveProfile] = useState(false);
-
-  // Fetch saved profiles on mount
-  useEffect(() => {
-    fetchSavedProfiles();
-  }, []);
 
   const fetchSavedProfiles = () => {
     try {

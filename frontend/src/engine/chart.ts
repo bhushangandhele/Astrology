@@ -5,6 +5,7 @@ import { getPlacementInfo, type PlacementInfo, RASHIS } from './astronomy';
 
 export interface PlanetPlacement extends PlacementInfo {
   name: string;
+  house?: number;
 }
 
 export interface HouseInfo {
@@ -106,10 +107,8 @@ export function calculateBirthChart(
   const planets: Record<string, PlanetPlacement> = {};
 
   for (const pName of planetNames) {
-    let tropicalLon = 0;
-    
     // Convert string name to astronomy-engine Body enum safely
-    const bodyEnum = (Body as any)[pName];
+    const bodyEnum = (Body as unknown as Record<string, Body>)[pName];
     
     if (!bodyEnum) {
       throw new Error(`Invalid planet name for astronomy-engine: ${pName}`);
@@ -120,7 +119,7 @@ export function calculateBirthChart(
     // Aberration is set to true to get apparent geocentric position.
     const geoVec = GeoVector(bodyEnum, time, true);
     const ecl = Ecliptic(geoVec);
-    tropicalLon = ecl.elon; // True Geocentric Ecliptic Longitude
+    const tropicalLon = ecl.elon; // True Geocentric Ecliptic Longitude
     
     const siderealLon = toSidereal(tropicalLon, jd);
     const placement = getPlacementInfo(siderealLon);
@@ -176,7 +175,7 @@ export function calculateBirthChart(
       if (houses[h].signNumber === pSignNum) {
         houses[h].planets.push(pName);
         // Also add house number to the planet's placement info
-        (planets[pName] as any).house = h;
+        (planets[pName] as PlanetPlacement & { house?: number }).house = h;
         break;
       }
     }

@@ -66,7 +66,7 @@ export const App: React.FC = () => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [partnerDetails, setPartnerDetails] = useState<BirthProfileData | null>(null);
   const [matchResult, setMatchResult] = useState<MatchResult | null>(null);
-  const [partnerRashiData, setPartnerRashiData] = useState<any | null>(null);
+  const [partnerRashiData, setPartnerRashiData] = useState<{name: string, rashi: string, nakshatra: string, pada: number} | null>(null);
 
   // Localized predictions computation
   const getLocalizedPredictions = () => {
@@ -178,9 +178,9 @@ export const App: React.FC = () => {
       if (window.innerWidth <= 1024) {
         setIsMobileFormCollapsed(true);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setError(err.message || 'An error occurred during calculations. Please try again.');
+      setError(err instanceof Error ? err.message : 'An error occurred during calculations. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -242,9 +242,9 @@ export const App: React.FC = () => {
         pada: chartB.planets.Moon.pada
       });
       setMatchResult(match);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setError(err.message || 'Failed to calculate matching score.');
+      setError(err instanceof Error ? err.message : 'Failed to calculate matching score.');
     } finally {
       setIsMatchingLoading(false);
     }
@@ -1096,7 +1096,7 @@ export const App: React.FC = () => {
       </footer>
 
       {/* Hidden Full Report for Printing */}
-      <FullReport chartData={chartData} dashaData={dashaData} localizedPredictions={localizedPredictions} language={language} />
+      <FullReport chartData={chartData} dashaData={dashaData} localizedPredictions={(localizedPredictions || {}) as Record<string, { title: string; text: string; }>} language={language} />
     </div>
   );
 };

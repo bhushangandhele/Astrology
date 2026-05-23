@@ -20,7 +20,7 @@ export async function searchCitiesAsync(query: string): Promise<CityInfo[]> {
     const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`);
     const data = await res.json();
     if (data && data.results) {
-      return data.results.map((r: any) => ({
+      return data.results.map((r: { name: string, country?: string, admin1?: string, latitude: number, longitude: number, timezone?: string }) => ({
         name: r.name,
         country: r.country || r.admin1 || 'Unknown',
         latitude: r.latitude,

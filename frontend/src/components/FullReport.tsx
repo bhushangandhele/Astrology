@@ -10,7 +10,7 @@ import { SIGNS_MR, NAKSHATRAS_MR } from '../utils/i18n';
 interface FullReportProps {
   chartData: BirthChartResult | null;
   dashaData: Mahadasha[] | null;
-  localizedPredictions: any;
+  localizedPredictions: Record<string, {title: string, text: string}>;
   language: 'EN' | 'MR';
 }
 

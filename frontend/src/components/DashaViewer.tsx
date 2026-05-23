@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import type { Mahadasha } from '../engine/dasha';
 import { PLANETS_MR } from '../utils/i18n';
 import type { BirthChartResult } from '../engine/chart';
@@ -11,6 +11,8 @@ interface DashaViewerProps {
 
 export const DashaViewer: React.FC<DashaViewerProps> = ({ dashas, language = 'EN', chartData }) => {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const tableRef = useRef<HTMLDivElement>(null);
 
   const toggleExpand = (index: number) => {
     setExpandedIndex(expandedIndex === index ? null : index);
@@ -23,11 +25,25 @@ export const DashaViewer: React.FC<DashaViewerProps> = ({ dashas, language = 'EN
     return now >= start && now <= end;
   };
 
+  const handleDragStart = () => {
+    setIsDragging(true);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
+  const handleDragMove = () => {
+    if (isDragging) {
+      // Drag logic
+    }
+  };
+
   const lordName = (name: string) =>
     language === 'MR' ? (PLANETS_MR[name]?.full ?? name) : name;
 
   return (
-    <div className="glass-panel" style={{ padding: '2rem' }}>
+    <div className="glass-panel" style={{ padding: '2rem' }} ref={tableRef} onMouseDown={handleDragStart} onMouseMove={handleDragMove} onMouseUp={handleDragEnd} onMouseLeave={handleDragEnd}>
       <h3 className="title-cosmic" style={{ fontSize: '1.4rem', borderBottom: '1px solid rgba(139, 92, 246, 0.2)', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>
         {language === 'MR' ? 'विंशोत्तरी दशा कालरेषा (१२० वर्षांचे चक्र)' : 'Vimshottari Dasha Timeline (120 Years Cycle)'}
       </h3>
@@ -129,13 +145,13 @@ export const DashaViewer: React.FC<DashaViewerProps> = ({ dashas, language = 'EN
                       </div>
                       {language === 'MR' ? (
                         <>
-                          तुमच्या कुंडलीत <strong>{lordName(dasha.lord)}</strong> हा ग्रह <strong>{(chartData.planets[dasha.lord] as any).house} व्या भावात (घरात)</strong> आहे.
-                          या महादशेमध्ये तुम्हाला {(chartData.planets[dasha.lord] as any).house} व्या भावाशी संबंधित फळे (उदा. करिअर, घर, संबंध) अधिक प्रकर्षाने मिळतील. ग्रहाच्या स्वभावानुसार तुमच्या जीवनात प्रमुख बदल आणि घटना घडतील.
+                          तुमच्या कुंडलीत <strong>{lordName(dasha.lord)}</strong> हा ग्रह <strong>{chartData.planets[dasha.lord].house} व्या भावात (घरात)</strong> आहे.
+                          या महादशेमध्ये तुम्हाला {chartData.planets[dasha.lord].house} व्या भावाशी संबंधित फळे (उदा. करिअर, घर, संबंध) अधिक प्रकर्षाने मिळतील. ग्रहाच्या स्वभावानुसार तुमच्या जीवनात प्रमुख बदल आणि घटना घडतील.
                         </>
                       ) : (
                         <>
-                          In your birth chart, <strong>{dasha.lord}</strong> is placed in the <strong>{(chartData.planets[dasha.lord] as any).house}th House</strong>. 
-                          During this Mahadasha, the themes of the {(chartData.planets[dasha.lord] as any).house}th house will become highly active in your life. You will experience major events, transformations, and results related to the significations of {dasha.lord} and its placement.
+                          In your birth chart, <strong>{dasha.lord}</strong> is placed in the <strong>{chartData.planets[dasha.lord].house}th House</strong>. 
+                          During this Mahadasha, the themes of the {chartData.planets[dasha.lord].house}th house will become highly active in your life. You will experience major events, transformations, and results related to the significations of {dasha.lord} and its placement.
                         </>
                       )}
                     </div>

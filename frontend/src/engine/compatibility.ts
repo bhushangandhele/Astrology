@@ -142,7 +142,7 @@ export function calculateAshtakootMatch(
   // 2. Vashya Koota (Max: 2)
   const vashyaA = getVashyaGroup(pA.signNumber);
   const vashyaB = getVashyaGroup(pB.signNumber);
-  let vashyaScore = 0;
+  let vashyaScore: number;
   if (vashyaA === vashyaB) {
     vashyaScore = 2;
   } else if ((vashyaA === 'Manav' && vashyaB === 'Chatushpada') || (vashyaA === 'Chatushpada' && vashyaB === 'Jalachar')) {
@@ -231,7 +231,7 @@ export function calculateAshtakootMatch(
   // Distance from sign A to B (clockwise)
   const dist = ((signB - signA + 12) % 12) + 1;
   
-  let bhakootScore = 0;
+  let bhakootScore: number;
   // Unfavorable pairs: 2/12, 5/9, 6/8
   if ([2, 12, 5, 9, 6, 8].includes(dist)) {
     bhakootScore = 0;
